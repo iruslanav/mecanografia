@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeclaVerde · Aventura de mecanografía</title>
+<style>
+  :root{
+    --verde:#8bc63f;
+    --verde-osc:#6ba32b;
+    --verde-claro:#e8f5d6;
+    --verde-muy-claro:#f4fae9;
+    --tinta:#243010;
+    --gris:#6b7a52;
+    --blanco:#ffffff;
+    --cielo:#d9efc2;
+    --sombra:0 6px 0 var(--verde-osc);
+    --radio:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;
+    background:var(--verde-muy-claro);
+    color:var(--tinta);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px;}
+
+  /* ---------- CABECERA ---------- */
+  header{text-align:center;padding:22px 0 10px;}
+  .logo{
+    display:inline-flex;align-items:center;gap:12px;
+    font-size:34px;font-weight:bold;letter-spacing:-1px;
+  }
+  .logo .chip{
+    background:var(--verde);color:#fff;border-radius:12px;
+    padding:4px 12px;display:inline-flex;align-items:center;gap:6px;
+    box-shadow:0 4px 0 var(--verde-osc);
+  }
+  .logo .chip .flecha{font-family:monospace;font-size:26px;}
+  .subt{color:var(--gris);font-size:16px;margin-top:8px;}
+
+  /* ---------- BARRA DE PROGRESO / RANGO ---------- */
+  .panel-rango{
+    display:flex;align-items:center;justify-content:space-between;
+    background:#fff;border-radius:var(--radio);padding:14px 20px;
+    margin:18px 0;box-shadow:0 4px 0 #dfeccb;flex-wrap:wrap;gap:12px;
+  }
+  .rango-info{display:flex;align-items:center;gap:12px;}
+  .rango-emoji{font-size:38px;}
+  .rango-txt small{color:var(--gris);font-size:13px;display:block;}
+  .rango-txt b{font-size:20px;}
+  .puntos{
+    background:var(--verde-claro);color:var(--verde-osc);
+    font-weight:bold;font-size:18px;border-radius:30px;padding:8px 20px;
+  }
+
+  /* ---------- MENU DE JUEGOS ---------- */
+  .menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:10px;}
+  .card{
+    background:#fff;border:none;border-radius:var(--radio);
+    padding:24px 20px;cursor:pointer;text-align:left;
+    box-shadow:0 6px 0 #dfeccb;transition:transform .12s,box-shadow .12s;
+    font-family:inherit;color:inherit;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 9px 0 #dfeccb;}
+  .card:active{transform:translateY(2px);box-shadow:0 3px 0 #dfeccb;}
+  .card .ico{font-size:44px;display:block;margin-bottom:10px;}
+  .card h3{font-size:21px;margin-bottom:6px;}
+  .card p{color:var(--gris);font-size:14px;line-height:1.4;}
+  .card .etiqueta{
+    display:inline-block;margin-top:12px;background:var(--verde);color:#fff;
+    font-size:13px;font-weight:bold;padding:5px 14px;border-radius:20px;
+  }
+
+  /* ---------- PANTALLAS DE JUEGO ---------- */
+  .pantalla{display:none;}
+  .pantalla.activa{display:block;}
+  .volver{
+    background:#fff;border:2px solid var(--verde);color:var(--verde-osc);
+    font-family:inherit;font-weight:bold;font-size:15px;cursor:pointer;
+    padding:8px 18px;border-radius:30px;margin-bottom:16px;
+  }
+  .volver:hover{background:var(--verde-claro);}
+  .titulo-juego{font-size:26px;margin-bottom:4px;}
+  .desc-juego{color:var(--gris);margin-bottom:18px;font-size:15px;}
+
+  /* ---------- FLAPPY ---------- */
+  #flappyCanvas{
+    width:100%;max-width:600px;height:400px;display:block;margin:0 auto;
+    background:linear-gradient(180deg,#eaf7d8 0%,#d4edb8 100%);
+    border-radius:var(--radio);border:4px solid var(--verde);
+    box-shadow:0 6px 0 var(--verde-osc);
+  }
+  .marcador-linea{
+    display:flex;justify-content:center;gap:24px;margin:14px 0;
+    font-size:17px;font-weight:bold;color:var(--verde-osc);flex-wrap:wrap;
+  }
+  .marcador-linea span small{color:var(--gris);font-weight:normal;font-size:13px;}
+  .instruccion{
+    text-align:center;background:var(--verde-claro);color:var(--verde-osc);
+    border-radius:14px;padding:12px 16px;margin:14px auto;max-width:600px;font-size:15px;
+  }
+  .boton-grande{
+    display:block;margin:16px auto;background:var(--verde);color:#fff;
+    border:none;font-family:inherit;font-weight:bold;font-size:19px;
+    padding:14px 40px;border-radius:40px;cursor:pointer;
+    box-shadow:0 5px 0 var(--verde-osc);transition:transform .1s;
+  }
+  .boton-grande:hover{filter:brightness(1.05);}
+  .boton-grande:active{transform:translateY(3px);box-shadow:0 2px 0 var(--verde-osc);}
+
+  /* ---------- CARRERA (escribir palabras) ---------- */
+  .pista{
+    background:#fff;border-radius:var(--radio);padding:20px;
+    box-shadow:0 5px 0 #dfeccb;max-width:640px;margin:0 auto;
+  }
+  .palabra-objetivo{
+    font-size:40px;font-weight:bold;text-align:center;letter-spacing:2px;
+    margin:10px 0 4px;min-height:52px;
+  }
+  .palabra-objetivo .ok{color:var(--verde);}
+  .palabra-objetivo .mal{color:#e05252;text-decoration:underline;}
+  .palabra-objetivo .pend{color:#c3cdb0;}
+  #inputCarrera{
+    width:100%;font-family:inherit;font-size:24px;text-align:center;
+    padding:14px;border:3px solid var(--verde-claro);border-radius:14px;
+    outline:none;margin-top:10px;
+  }
+  #inputCarrera:focus{border-color:var(--verde);}
+  .barra-coche{
+    position:relative;height:40px;background:var(--verde-claro);
+    border-radius:30px;margin:20px 0 6px;overflow:hidden;
+  }
+  .coche{
+    position:absolute;top:50%;transform:translateY(-50%);left:0;
+    font-size:30px;transition:left .3s;
+  }
+  .meta-bandera{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:26px;}
+
+  /* ---------- QUIZ ---------- */
+  .quiz-card{
+    background:#fff;border-radius:var(--radio);padding:26px 24px;
+    box-shadow:0 5px 0 #dfeccb;max-width:640px;margin:0 auto;
+  }
+  .quiz-num{color:var(--verde-osc);font-weight:bold;font-size:14px;margin-bottom:8px;}
+  .quiz-preg{font-size:22px;margin-bottom:20px;line-height:1.3;}
+  .quiz-ops{display:flex;flex-direction:column;gap:12px;}
+  .quiz-op{
+    background:var(--verde-muy-claro);border:2px solid var(--verde-claro);
+    border-radius:14px;padding:14px 18px;font-size:17px;cursor:pointer;
+    font-family:inherit;color:inherit;text-align:left;transition:all .12s;
+  }
+  .quiz-op:hover{border-color:var(--verde);background:var(--verde-claro);}
+  .quiz-op.acierto{background:var(--verde);color:#fff;border-color:var(--verde-osc);}
+  .quiz-op.fallo{background:#fdecec;color:#c23b3b;border-color:#e8a0a0;}
+  .quiz-feedback{
+    margin-top:18px;padding:14px 16px;border-radius:14px;font-size:15px;
+    background:var(--verde-claro);color:var(--verde-osc);display:none;line-height:1.5;
+  }
+  .quiz-feedback.mostrar{display:block;}
+
+  /* ---------- PANTALLA FINAL / VICTORIA ---------- */
+  .victoria{
+    text-align:center;background:#fff;border-radius:var(--radio);
+    padding:36px 24px;box-shadow:0 6px 0 #dfeccb;max-width:520px;margin:20px auto;
+  }
+  .victoria .estrella{font-size:64px;}
+  .victoria h2{font-size:30px;margin:10px 0;}
+  .victoria p{color:var(--gris);font-size:17px;margin-bottom:8px;}
+  .victoria .num{font-size:44px;font-weight:bold;color:var(--verde);}
+
+  footer{text-align:center;color:var(--gris);font-size:13px;margin-top:40px;}
+
+  /* ---------- SELECTOR DE DIFICULTAD ---------- */
+  .dificultad-sel{
+    display:flex;align-items:center;gap:8px;justify-content:center;
+    flex-wrap:wrap;margin-bottom:14px;
+  }
+  .dif-titulo{font-weight:bold;color:var(--verde-osc);font-size:15px;}
+  .dif-btn{
+    font-family:inherit;font-size:15px;font-weight:bold;cursor:pointer;
+    background:#fff;color:var(--gris);border:2px solid var(--verde-claro);
+    border-radius:30px;padding:8px 16px;transition:all .12s;
+  }
+  .dif-btn:hover{border-color:var(--verde);}
+  .dif-btn.activo{background:var(--verde);color:#fff;border-color:var(--verde-osc);}
+  /* el coche animado se mueve suave */
+  .coche{transition:left .35s ease-out !important;}
+
+  /* ---------- BOTONES DE NIVEL ---------- */
+  .btn-nivel{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    background:#fff;border:3px solid var(--verde-claro);border-radius:16px;
+    padding:16px 8px;cursor:pointer;font-family:inherit;color:var(--tinta);
+    box-shadow:0 4px 0 #dfeccb;transition:transform .12s,border-color .12s;
+  }
+  .btn-nivel b{font-size:17px;}
+  .btn-nivel small{color:var(--gris);font-size:12px;}
+  .btn-nivel:hover{transform:translateY(-2px);border-color:var(--verde);}
+  .btn-nivel:active{transform:translateY(2px);box-shadow:0 2px 0 #dfeccb;}
+  .btn-nivel.activo{border-color:var(--verde);background:var(--verde-muy-claro);box-shadow:0 4px 0 var(--verde);}
+
+  /* ---------- BIENVENIDA JUGADOR ---------- */
+  #bienvenida{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:30px 16px;min-height:60vh;
+  }
+  #bienvenida .mascota{font-size:80px;animation:flota 2.2s ease-in-out infinite;}
+  @keyframes flota{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  #bienvenida h1{font-size:32px;margin:12px 0 4px;}
+  #bienvenida p{color:var(--gris);font-size:17px;margin-bottom:24px;max-width:420px;line-height:1.5;}
+  #nombreJugador{
+    font-family:inherit;font-size:22px;text-align:center;padding:14px 20px;
+    border:3px solid var(--verde-claro);border-radius:40px;outline:none;
+    width:100%;max-width:340px;margin-bottom:16px;
+  }
+  #nombreJugador:focus{border-color:var(--verde);}
+  .app-oculta{display:none;}
+  .saludo-jugador{color:var(--verde-osc);font-weight:bold;}
+
+  @media(max-width:520px){
+    .logo{font-size:26px;}
+    #flappyCanvas{height:320px;}
+    .palabra-objetivo{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ BIENVENIDA (nombre del jugador) ============ -->
+  <div id="bienvenida">
+    <div class="logo" style="font-size:30px;margin-bottom:6px;">
+      <span class="chip"><span class="flecha">&gt;_</span></span>
+      Tecla<span style="color:var(--verde)">Verde</span>
+    </div>
+    <div class="mascota">🐦</div>
+    <h1>¡Hola, futuro mecanógrafo!</h1>
+    <p>Escribe tu nombre para empezar la aventura. Vas a aprender a teclear sin mirar, jugando.</p>
+    <input id="nombreJugador" type="text" maxlength="16" placeholder="Tu nombre..." autocomplete="off"
+      onkeydown="if(event.key==='Enter')entrarJuego()">
+    <button class="boton-grande" onclick="entrarJuego()">¡Empezar!</button>
+  </div>
+
+  <!-- ============ APLICACIÓN (oculta hasta poner nombre) ============ -->
+  <div id="app" class="app-oculta">
+
+  <header>
+    <div class="logo">
+      <span class="chip"><span class="flecha">&gt;_</span></span>
+      Tecla<span style="color:var(--verde)">Verde</span>
+    </div>
+    <p class="subt" id="saludoSubt">La aventura de aprender a escribir sin mirar el teclado</p>
+  </header>
+
+  <div class="panel-rango">
+    <div class="rango-info">
+      <span class="rango-emoji" id="rangoEmoji">🐢</span>
+      <div class="rango-txt">
+        <small>Jugador: <span class="saludo-jugador" id="nombrePanel">—</span></small>
+        <b id="rangoNombre">Tortuga tecleadora</b>
+      </div>
+    </div>
+    <div class="puntos">⭐ <span id="puntosTotal">0</span> pts</div>
+  </div>
+
+  <!-- ============ MENÚ ============ -->
+  <div id="menu" class="pantalla activa">
+    <div class="menu">
+      <button class="card" onclick="irA('flappy')">
+        <span class="ico">🐦</span>
+        <h3>Pájaro Tecla</h3>
+        <p>Pulsa la letra correcta para que el pájaro vuele y esquive los tubos. ¡No mires el teclado!</p>
+        <span class="etiqueta">Juego arcade</span>
+      </button>
+      <button class="card" onclick="irA('carrera')">
+        <span class="ico">🏎️</span>
+        <h3>Carrera de palabras</h3>
+        <p>Escribe las palabras lo más rápido que puedas para que tu coche llegue a la meta.</p>
+        <span class="etiqueta">Velocidad</span>
+      </button>
+      <button class="card" onclick="irA('quiz')">
+        <span class="ico">🧠</span>
+        <h3>Reto del teclado</h3>
+        <p>Preguntas para repasar lo que aprendiste: el QWERTY, las filas y los dedos.</p>
+        <span class="etiqueta">Repaso</span>
+      </button>
+      <button class="card" onclick="irA('copia')">
+        <span class="ico">📖</span>
+        <h3>Copia y aprende</h3>
+        <p>Copia textos curiosos de tecnología y programación. Practicas los dedos mientras aprendes cosas nuevas.</p>
+        <span class="etiqueta">Escritura + saber</span>
+      </button>
+    </div>
+    <div class="instruccion" style="max-width:100%;margin-top:24px;">
+      <b>Consejo:</b> coloca los dedos índice sobre las teclas <b>F</b> y <b>J</b> (tienen una rayita para encontrarlas sin mirar). Esa es la <b>posición inicial</b> desde donde tus dedos alcanzan todo el teclado.
+    </div>
+  </div>
+
+  <!-- ============ FLAPPY ============ -->
+  <div id="flappy" class="pantalla">
+    <button class="volver" onclick="irA('menu')">← Volver al menú</button>
+    <h2 class="titulo-juego">🐦 Pájaro Tecla</h2>
+    <p class="desc-juego">Aparece una letra sobre el pájaro. Púlsala en el teclado para dar un aletazo y subir. ¡Cuantos más tubos pases, más puntos!</p>
+    <div class="dificultad-sel" id="flappyDif">
+      <span class="dif-titulo">Dificultad:</span>
+      <button class="dif-btn activo" data-nivel="facil" onclick="setDifFlappy('facil',this)">🐌 Fácil</button>
+      <button class="dif-btn" data-nivel="medio" onclick="setDifFlappy('medio',this)">🚶 Media</button>
+      <button class="dif-btn" data-nivel="dificil" onclick="setDifFlappy('dificil',this)">🏃 Difícil</button>
+    </div>
+    <canvas id="flappyCanvas" width="600" height="400"></canvas>
+    <div class="marcador-linea">
+      <span>🏆 Tubos: <span id="flappyScore">0</span></span>
+      <span>Aciertos: <span id="flappyAciertos">0</span></span>
+      <span>⌨️ Pulsa: <span id="flappyLetra" style="font-size:22px">—</span></span>
+    </div>
+    <button class="boton-grande" id="flappyStart" onclick="iniciarFlappy()">¡Empezar a volar!</button>
+    <div class="instruccion">Deja los dedos sobre la fila del medio. Cuando salga la letra, púlsala para que el pájaro suba. Si no pulsas, baja poco a poco.</div>
+  </div>
+
+  <!-- ============ CARRERA ============ -->
+  <div id="carrera" class="pantalla">
+    <button class="volver" onclick="irA('menu')">← Volver al menú</button>
+    <h2 class="titulo-juego">🏎️ Carrera de palabras</h2>
+    <p class="desc-juego">Escribe cada palabra y se corrige sola al acertar. Tu coche avanza con cada palabra. ¡Escribe todas las que puedas antes de que se acabe el tiempo!</p>
+    <div class="dificultad-sel" id="carreraDif">
+      <span class="dif-titulo">Tiempo:</span>
+      <button class="dif-btn activo" data-t="60" onclick="setDifCarrera(60,this)">🐌 60s</button>
+      <button class="dif-btn" data-t="30" onclick="setDifCarrera(30,this)">🚶 30s</button>
+      <button class="dif-btn" data-t="15" onclick="setDifCarrera(15,this)">🏃 15s</button>
+    </div>
+    <div class="pista">
+      <div class="barra-coche">
+        <span class="coche" id="coche">🏎️</span>
+        <span class="meta-bandera">🏁</span>
+      </div>
+      <div class="marcador-linea" style="margin:6px 0 12px;">
+        <span><span id="carreraAciertos">0</span> palabras</span>
+        <span>⏱️ <span id="carreraTiempo">60</span>s</span>
+      </div>
+      <div class="palabra-objetivo" id="palabraObjetivo">Pulsa empezar →</div>
+      <input id="inputCarrera" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="escribe aquí..." disabled>
+    </div>
+    <button class="boton-grande" id="carreraStart" onclick="iniciarCarrera()">¡A correr!</button>
+  </div>
+
+  <!-- ============ COPIA Y APRENDE ============ -->
+  <div id="copia" class="pantalla">
+    <button class="volver" onclick="irA('menu')">← Volver al menú</button>
+    <h2 class="titulo-juego">📖 Copia y aprende</h2>
+    <p class="desc-juego">Elige un texto (o escribe el tuyo), cópialo tal cual y aprende algo nuevo. Se pinta de verde lo que aciertas. Al final ves tu velocidad.</p>
+
+    <div id="copiaSelector">
+      <p style="font-weight:bold;color:var(--tinta);margin-bottom:12px;font-size:17px;">Elige el nivel de dificultad:</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;">
+        <button class="btn-nivel" id="niv-facil" onclick="elegirNivel('facil')" data-color="#7bbf3a">
+          <span style="font-size:30px;">🟢</span>
+          <b>Fácil</b>
+          <small>Frases cortas</small>
+        </button>
+        <button class="btn-nivel" id="niv-medio" onclick="elegirNivel('medio')" data-color="#e8a838">
+          <span style="font-size:30px;">🟡</span>
+          <b>Medio</b>
+          <small>Párrafos</small>
+        </button>
+        <button class="btn-nivel" id="niv-dificil" onclick="elegirNivel('dificil')" data-color="#e07a52">
+          <span style="font-size:30px;">🔴</span>
+          <b>Difícil</b>
+          <small>Textos largos</small>
+        </button>
+      </div>
+
+      <div id="zonaTextos" style="display:none;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+          <label style="font-weight:bold;color:var(--verde-osc);">Elige un texto:</label>
+          <select id="selectTexto" onchange="cargarTextoElegido()"
+            style="font-family:inherit;font-size:16px;padding:10px 14px;border-radius:12px;border:2px solid var(--verde-claro);background:#fff;cursor:pointer;flex:1;min-width:200px;"></select>
+        </div>
+      </div>
+
+      <div style="text-align:center;color:var(--gris);margin:16px 0;">— o —</div>
+      <div style="background:#fff;border-radius:var(--radio);padding:18px;box-shadow:0 4px 0 #dfeccb;margin-bottom:16px;">
+        <label style="font-weight:bold;display:block;margin-bottom:8px;">Escribe tu propio texto (para que lo copie):</label>
+        <textarea id="textoPropio" rows="3" placeholder="Pega o escribe aquí cualquier texto interesante..."
+          style="width:100%;font-family:inherit;font-size:15px;padding:12px;border:2px solid var(--verde-claro);border-radius:12px;outline:none;resize:vertical;"></textarea>
+        <button class="boton-grande" style="margin:12px 0 0;font-size:16px;padding:10px 26px;" onclick="usarTextoPropio()">Usar este texto →</button>
+      </div>
+    </div>
+
+    <div id="copiaJuego" style="display:none;">
+      <div class="marcador-linea" style="margin:6px 0 14px;">
+        <span>⚡ <span id="copiaPpm">0</span> <small>ppm</small></span>
+        <span><span id="copiaPrec">100</span>% <small>precisión</small></span>
+        <span><span id="copiaProg">0</span>% <small>del texto</small></span>
+      </div>
+      <div class="pista" style="max-width:100%;">
+        <div id="copiaTexto" style="font-size:22px;line-height:1.9;letter-spacing:0.5px;margin-bottom:16px;"></div>
+        <textarea id="copiaInput" rows="3" autocomplete="off" autocapitalize="off" spellcheck="false"
+          placeholder="empieza a escribir el texto de arriba..."
+          style="width:100%;font-family:inherit;font-size:19px;padding:14px;border:3px solid var(--verde-claro);border-radius:14px;outline:none;resize:none;"></textarea>
+      </div>
+      <div id="copiaSaber" style="display:none;background:var(--verde-claro);color:var(--verde-osc);border-radius:14px;padding:16px 18px;margin:16px auto;max-width:100%;font-size:15px;line-height:1.5;"></div>
+      <button class="boton-grande" style="display:none;" id="copiaOtro" onclick="reiniciarCopia()">Elegir otro texto</button>
+    </div>
+  </div>
+
+  <!-- ============ QUIZ ============ -->
+  <div id="quiz" class="pantalla">
+    <button class="volver" onclick="irA('menu')">← Volver al menú</button>
+    <h2 class="titulo-juego">🧠 Reto del teclado</h2>
+    <p class="desc-juego">Demuestra lo que aprendiste ayer. Cada acierto suma puntos.</p>
+    <div class="quiz-card">
+      <div class="quiz-num" id="quizNum">Pregunta 1 de 8</div>
+      <div class="quiz-preg" id="quizPreg">...</div>
+      <div class="quiz-ops" id="quizOps"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button class="boton-grande" id="quizNext" style="display:none" onclick="siguientePregunta()">Siguiente →</button>
+    </div>
+  </div>
+
+  <footer>
+    Campus de mecanografía · Codelearn
+  </footer>
+
+  </div><!-- fin #app -->
+</div>
+
+<script>
+/* =================== GUARDADO DE PROGRESO ===================
+   Guarda el nombre y los puntos en el navegador del alumno.
+   Así, cuando vuelve otro día, recupera su rango y su marca. */
+function guardar(){
+  try{
+    localStorage.setItem('teclaverde', JSON.stringify({nombre:jugadorNombre, puntos:puntos}));
+  }catch(e){ /* si el navegador no deja, seguimos igual */ }
+}
+function cargarGuardado(){
+  try{
+    const d = JSON.parse(localStorage.getItem('teclaverde'));
+    return (d && d.nombre) ? d : null;
+  }catch(e){ return null; }
+}
+
+let jugadorNombre = "";
+
+/* =================== BIENVENIDA JUGADOR =================== */
+function entrarJuego(){
+  let nombre = document.getElementById('nombreJugador').value.trim();
+  if(nombre === "") nombre = "Jugador";
+  nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+  jugadorNombre = nombre;
+  document.getElementById('nombrePanel').textContent = nombre;
+  document.getElementById('saludoSubt').innerHTML =
+    '¡A por ello, <span class="saludo-jugador">'+nombre+'</span>! Elige un juego para empezar';
+  document.getElementById('bienvenida').style.display = 'none';
+  document.getElementById('app').classList.remove('app-oculta');
+  sumarPuntos(0); // refresca el panel de puntos y rango con lo que ya tuviera
+  guardar();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* =================== ESTADO GLOBAL =================== */
+let puntos = 0;
+const rangos = [
+  {min:0,   emoji:"🐢", nombre:"Tortuga tecleadora"},
+  {min:50,  emoji:"🐇", nombre:"Liebre de las letras"},
+  {min:120, emoji:"🐆", nombre:"Guepardo del teclado"},
+  {min:250, emoji:"⚡", nombre:"Rayo mecanógrafo"},
+];
+function sumarPuntos(n){
+  puntos += n;
+  document.getElementById('puntosTotal').textContent = puntos;
+  let r = rangos[0];
+  rangos.forEach(x=>{ if(puntos>=x.min) r=x; });
+  document.getElementById('rangoEmoji').textContent = r.emoji;
+  document.getElementById('rangoNombre').textContent = r.nombre;
+  guardar();
+}
+
+function irA(id){
+  document.querySelectorAll('.pantalla').forEach(p=>p.classList.remove('activa'));
+  document.getElementById(id).classList.add('activa');
+  pararFlappy();
+  pararCarrera();
+  if(id==='quiz') iniciarQuiz();
+  if(id==='copia') reiniciarCopia();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('nombreJugador').focus();
+
+/* Si el alumno ya jugó antes en este navegador, le recuperamos su progreso */
+(function precargar(){
+  const g = cargarGuardado();
+  if(g){
+    document.getElementById('nombreJugador').value = g.nombre;
+    puntos = g.puntos || 0;
+    const btn = document.querySelector('#bienvenida .boton-grande');
+    if(btn) btn.textContent = "Seguir, "+g.nombre;
+    const p = document.querySelector('#bienvenida p');
+    if(p) p.innerHTML = "¡Bienvenido de nuevo! Ya llevas <b>"+puntos+" puntos</b>. Pulsa para seguir tu aventura.";
+  }
+})();
+
+/* =================== JUEGO 1: PÁJARO TECLA =================== */
+const cv = document.getElementById('flappyCanvas');
+const ctx = cv.getContext('2d');
+let flappy = null;
+
+const LETRAS = "asdfghjkl".split("");  // fila central: lo que ya practica
+
+function nuevaLetra(){
+  return LETRAS[Math.floor(Math.random()*LETRAS.length)];
+}
+
+/* Dificultades: velocidades en px por SEGUNDO (no por fotograma).
+   Así va igual de rápido en cualquier pantalla. */
+const DIF_FLAPPY = {
+  facil:   {grav:130, aletazo:-155, velTubo:70,  hueco:200, cadaTubo:3.4, txt:"Fácil"},
+  medio:   {grav:200, aletazo:-200, velTubo:105, hueco:170, cadaTubo:2.6, txt:"Media"},
+  dificil: {grav:290, aletazo:-250, velTubo:150, hueco:145, cadaTubo:2.0, txt:"Difícil"},
+};
+let difFlappy = "facil";
+function setDifFlappy(nivel, btn){
+  difFlappy = nivel;
+  document.querySelectorAll('#flappyDif .dif-btn').forEach(b=>b.classList.remove('activo'));
+  btn.classList.add('activo');
+}
+
+function iniciarFlappy(){
+  document.getElementById('flappyStart').style.display='none';
+  const d = DIF_FLAPPY[difFlappy];
+  flappy = {
+    y:200, vy:0, d:d,
+    tubos:[], score:0, aciertos:0,
+    letra:nuevaLetra(), viva:true, x:110,
+    tiempoTubo:0, ultimo:null, cuenta:3, empezado:false
+  };
+  document.getElementById('flappyScore').textContent=0;
+  document.getElementById('flappyAciertos').textContent=0;
+  document.getElementById('flappyLetra').textContent=flappy.letra.toUpperCase();
+  // cuenta atrás 3-2-1 para colocar los dedos
+  cuentaAtrasFlappy();
+}
+function pararFlappy(){ if(flappy){flappy.viva=false; flappy=null;} }
+
+function cuentaAtrasFlappy(){
+  if(!flappy) return;
+  if(flappy.cuenta > 0){
+    dibujarFlappy();
+    ctx.fillStyle="rgba(107,163,43,0.9)";
+    ctx.beginPath(); ctx.arc(cv.width/2, cv.height/2, 55, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle="#fff"; ctx.textAlign="center";
+    ctx.font="bold 60px 'Trebuchet MS',sans-serif";
+    ctx.fillText(flappy.cuenta, cv.width/2, cv.height/2+20);
+    flappy.cuenta--;
+    setTimeout(cuentaAtrasFlappy, 700);
+  } else {
+    flappy.empezado = true;
+    flappy.ultimo = performance.now();
+    requestAnimationFrame(loopFlappy);
+  }
+}
+
+function loopFlappy(ahora){
+  if(!flappy || !flappy.viva) return;
+  const f = flappy;
+  // delta = segundos desde el fotograma anterior (esto arregla la velocidad)
+  let dt = (ahora - f.ultimo)/1000;
+  f.ultimo = ahora;
+  if(dt > 0.05) dt = 0.05; // si el navegador se atasca, no dar saltos enormes
+
+  // física por segundo
+  f.vy += f.d.grav * dt;
+  f.y  += f.vy * dt;
+
+  // generar tubos por tiempo
+  f.tiempoTubo += dt;
+  if(f.tiempoTubo >= f.d.cadaTubo){
+    f.tiempoTubo = 0;
+    const min = 50, max = cv.height-50-f.d.hueco;
+    const gy = min + Math.random()*(max-min);
+    f.tubos.push({x:cv.width, gy:gy, hueco:f.d.hueco, pasado:false});
+  }
+  f.tubos.forEach(t=>{ t.x -= f.d.velTubo * dt; });
+  f.tubos.forEach(t=>{
+    if(!t.pasado && t.x + 46 < f.x){
+      t.pasado=true; f.score++;
+      document.getElementById('flappyScore').textContent=f.score;
+    }
+  });
+  f.tubos = f.tubos.filter(t=> t.x > -60);
+
+  // colisiones
+  if(f.y > cv.height-20 || f.y < 0){ finFlappy(); return; }
+  for(const t of f.tubos){
+    if(f.x+16 > t.x && f.x-16 < t.x+46){
+      if(f.y-16 < t.gy || f.y+16 > t.gy+t.hueco){ finFlappy(); return; }
+    }
+  }
+
+  dibujarFlappy();
+  requestAnimationFrame(loopFlappy);
+}
+
+function dibujarFlappy(){
+  const f = flappy;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // nubes decorativas suaves
+  ctx.fillStyle="rgba(255,255,255,0.5)";
+  ctx.beginPath(); ctx.arc(120,60,18,0,Math.PI*2); ctx.arc(145,60,22,0,Math.PI*2); ctx.arc(170,60,16,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(430,90,16,0,Math.PI*2); ctx.arc(452,90,20,0,Math.PI*2); ctx.fill();
+  // tubos verdes
+  f.tubos.forEach(t=>{
+    ctx.fillStyle="#6ba32b";
+    ctx.fillRect(t.x, 0, 46, t.gy);
+    ctx.fillRect(t.x, t.gy+t.hueco, 46, cv.height-(t.gy+t.hueco));
+    ctx.fillStyle="#8bc63f";
+    ctx.fillRect(t.x-3, t.gy-16, 52, 16);
+    ctx.fillRect(t.x-3, t.gy+t.hueco, 52, 16);
+  });
+  // pájaro (rota un poco según sube o baja = sensación de vuelo)
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  const inclina = Math.max(-0.4, Math.min(0.5, f.vy/600));
+  ctx.rotate(inclina);
+  ctx.font="34px sans-serif";
+  ctx.textAlign="center";
+  ctx.fillText("🐦", 0, 12);
+  ctx.restore();
+  // burbuja con letra
+  ctx.fillStyle="#fff";
+  ctx.strokeStyle="#8bc63f";
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.arc(f.x, f.y-38, 21, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#243010";
+  ctx.font="bold 26px 'Trebuchet MS',sans-serif";
+  ctx.textAlign="center";
+  ctx.fillText(f.letra.toUpperCase(), f.x, f.y-29);
+}
+
+function finFlappy(){
+  const f=flappy;
+  const ganado = f.score*5 + f.aciertos;
+  if(ganado>0) sumarPuntos(ganado);
+  flappy.viva=false;
+  ctx.fillStyle="rgba(107,163,43,0.9)";
+  ctx.fillRect(0,cv.height/2-70,cv.width,140);
+  ctx.fillStyle="#fff";
+  ctx.textAlign="center";
+  ctx.font="bold 32px 'Trebuchet MS',sans-serif";
+  ctx.fillText("¡Buen vuelo!", cv.width/2, cv.height/2-18);
+  ctx.font="20px 'Trebuchet MS',sans-serif";
+  ctx.fillText("Pasaste "+f.score+" tubos · +"+ganado+" puntos", cv.width/2, cv.height/2+14);
+  ctx.font="16px 'Trebuchet MS',sans-serif";
+  ctx.fillText("Pulsa el botón para volar otra vez", cv.width/2, cv.height/2+42);
+  flappy=null;
+  document.getElementById('flappyStart').style.display='block';
+  document.getElementById('flappyStart').textContent="Volar otra vez";
+  document.getElementById('flappyLetra').textContent="—";
+}
+
+/* teclado para flappy */
+document.addEventListener('keydown', e=>{
+  if(!flappy || !flappy.viva || !flappy.empezado) return;
+  if(document.getElementById('flappy').classList.contains('activa')){
+    const k = e.key.toLowerCase();
+    if(k === flappy.letra){
+      flappy.vy = flappy.d.aletazo;
+      flappy.aciertos++;
+      document.getElementById('flappyAciertos').textContent=flappy.aciertos;
+      flappy.letra = nuevaLetra();
+      document.getElementById('flappyLetra').textContent=flappy.letra.toUpperCase();
+      e.preventDefault();
+    }
+  }
+});
+
+/* =================== JUEGO 2: CARRERA =================== */
+const PALABRAS = ["sala","gala","faja","hada","gasas","laña","casa","laca","bala","nada",
+  "quiero","puerto","tutor","yute","torito","huerto","partido","teatro","gafas","salada",
+  "manada","banana","cañada","malva","chacal","fresa","flores","pajarito","queso","taxi"];
+let carrera = null;
+let difCarrera = 60;
+function setDifCarrera(seg, btn){
+  difCarrera = seg;
+  document.querySelectorAll('#carreraDif .dif-btn').forEach(b=>b.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('carreraTiempo').textContent = seg;
+}
+
+function iniciarCarrera(){
+  document.getElementById('carreraStart').style.display='none';
+  const inp = document.getElementById('inputCarrera');
+  inp.disabled=false; inp.value=""; inp.focus();
+  carrera = {aciertos:0, tiempo:difCarrera, total:difCarrera, palabra:"", timer:null, letras:0};
+  siguientePalabra();
+  document.getElementById('carreraAciertos').textContent=0;
+  document.getElementById('carreraTiempo').textContent=difCarrera;
+  moverCoche(0);
+  carrera.timer = setInterval(()=>{
+    carrera.tiempo--;
+    document.getElementById('carreraTiempo').textContent=carrera.tiempo;
+    if(carrera.tiempo<=0) finCarrera();
+  },1000);
+}
+function pararCarrera(){
+  if(carrera && carrera.timer){ clearInterval(carrera.timer); }
+  carrera=null;
+}
+function siguientePalabra(){
+  carrera.palabra = PALABRAS[Math.floor(Math.random()*PALABRAS.length)];
+  pintarPalabra("");
+}
+function pintarPalabra(escrito){
+  const objetivo = carrera.palabra;
+  let html="";
+  for(let i=0;i<objetivo.length;i++){
+    if(i<escrito.length){
+      if(escrito[i]===objetivo[i]) html+=`<span class="ok">${objetivo[i]}</span>`;
+      else html+=`<span class="mal">${objetivo[i]}</span>`;
+    } else {
+      html+=`<span class="pend">${objetivo[i]}</span>`;
+    }
+  }
+  document.getElementById('palabraObjetivo').innerHTML=html;
+}
+function moverCoche(pct){
+  document.getElementById('coche').style.left = Math.min(pct,90)+"%";
+}
+document.getElementById('inputCarrera').addEventListener('input', function(e){
+  if(!carrera) return;
+  const val = this.value.trim();
+  pintarPalabra(this.value);
+  if(val === carrera.palabra){
+    carrera.aciertos++;
+    carrera.letras += carrera.palabra.length;
+    document.getElementById('carreraAciertos').textContent=carrera.aciertos;
+    sumarPuntos(2);
+    // el coche avanza según lo que lleva del tiempo total, da la vuelta al llegar
+    moverCoche((carrera.aciertos % 13) * 7);
+    this.value="";
+    siguientePalabra();
+  }
+});
+function finCarrera(){
+  const inp=document.getElementById('inputCarrera');
+  inp.disabled=true;
+  const total = carrera ? carrera.aciertos : 0;
+  const seg = carrera ? carrera.total : 60;
+  // PPM = palabras escritas ajustadas a un minuto
+  const ppm = Math.round(total * (60/seg));
+  clearInterval(carrera?.timer);
+  document.getElementById('palabraObjetivo').innerHTML =
+    `<span style="color:var(--verde)">🏁 ¡Meta! ${total} palabras · ${ppm} ppm</span>`;
+  document.getElementById('coche').style.left="90%";
+  document.getElementById('carreraStart').style.display='block';
+  document.getElementById('carreraStart').textContent="Correr otra vez";
+  carrera=null;
+}
+
+/* =================== JUEGO 4: COPIA Y APRENDE =================== */
+const TEXTOS = {
+  facil: [
+    {titulo:"El ratón",
+     texto:"El raton mueve una flecha por la pantalla. Con el puedes hacer clic en cosas y abrir programas.",
+     saber:"El primer ratón se hizo de madera en 1964. ¡Parecía una cajita con ruedas por dentro!"},
+    {titulo:"Encender el PC",
+     texto:"Para usar un ordenador primero hay que encenderlo. Se pulsa un boton y espera unos segundos.",
+     saber:"Cuando enciendes el PC, hace una revisión de sí mismo en un segundo para ver que todo funciona."},
+    {titulo:"Los archivos",
+     texto:"Un archivo guarda cosas dentro del ordenador. Puede ser una foto, una cancion o un dibujo.",
+     saber:"Puedes tener miles de archivos en tu PC, ordenados en carpetas como si fueran cajones."},
+    {titulo:"La pantalla",
+     texto:"La pantalla muestra todo lo que hace el ordenador. Esta hecha de muchos puntos de color.",
+     saber:"Cada punto de la pantalla se llama píxel. ¡Una pantalla normal tiene más de dos millones!"},
+    {titulo:"⌨️ Las teclas",
+     texto:"El teclado tiene letras, numeros y signos. Cada dedo se encarga de unas teclas fijas.",
+     saber:"Las teclas F y J tienen una rayita para que tus dedos las encuentren sin mirar."},
+    {titulo:"El sonido",
+     texto:"El ordenador puede hacer sonidos y musica. Salen por unos altavoces o por los cascos.",
+     saber:"El ordenador convierte números en sonido a toda velocidad, ¡miles de veces por segundo!"},
+  ],
+  medio: [
+    {titulo:"¿Qué es un algoritmo?",
+     texto:"Un algoritmo es una lista de pasos para resolver un problema. Igual que una receta de cocina te dice que hacer y en que orden, un algoritmo le dice al ordenador que hacer paso a paso.",
+     saber:"La palabra 'algoritmo' viene de Al-Juarismi, un matemático de hace más de mil años. Sin saberlo, dio nombre a toda la programación."},
+    {titulo:"Bits y bytes",
+     texto:"El ordenador solo entiende ceros y unos. Cada cero o uno es un bit. Ocho bits juntos forman un byte. Con bytes se guardan las letras, las fotos y los videojuegos.",
+     saber:"Una sola foto del móvil puede ocupar varios millones de bytes. ¡El ordenador maneja millones de ceros y unos sin despeinarse!"},
+    {titulo:"Cómo funciona internet",
+     texto:"Cuando abres una web, tu ordenador pide la informacion a otro ordenador llamado servidor. Ese servidor le envia la pagina de vuelta. Todo viaja por cables y ondas en menos de un segundo.",
+     saber:"Muchos cables de internet van por el fondo del mar, cruzando océanos enteros. ¡Tu mensaje puede cruzar el Atlántico por debajo del agua!"},
+    {titulo:"Lenguajes de programación",
+     texto:"Los humanos hablamos español o ingles, pero los ordenadores usan sus propios idiomas: los lenguajes de programacion. Algunos famosos son Python, Java y JavaScript.",
+     saber:"El lenguaje Python se llama así por un grupo de humoristas, los Monty Python, no por la serpiente. A su creador le hacían mucha gracia."},
+    {titulo:"Cómo se hace un videojuego",
+     texto:"Un videojuego es un programa muy grande. Los programadores escriben el codigo que mueve los personajes, y los artistas dibujan todo lo que ves en la pantalla. Trabajan en equipo durante meses.",
+     saber:"Hay videojuegos con más de un millón de líneas de código. ¡Si las imprimieras, llenarías miles de páginas de un libro!"},
+    {titulo:"⌨️ Historia del QWERTY",
+     texto:"El teclado QWERTY se invento en 1874. Las letras estan desordenadas a proposito, para que las maquinas de escribir antiguas no se atascaran cuando alguien escribia muy rapido.",
+     saber:"Aunque ya no usamos máquinas de escribir, seguimos con el mismo orden raro de teclas. ¡Llevamos casi 150 años tecleando igual!"},
+  ],
+  dificil: [
+    {titulo:"La inteligencia artificial",
+     texto:"La inteligencia artificial son programas que aprenden de muchos ejemplos. Si le enseñas 10.000 fotos de gatos, aprende a reconocer un gato nuevo que nunca habia visto antes. Cuantos mas ejemplos ve, mejor acierta.",
+     saber:"La IA no piensa como tú. No sabe qué es un gato de verdad, solo ha visto tantas fotos que adivina los patrones. ¡Es pura práctica, como la mecanografía!"},
+    {titulo:"Contraseñas seguras",
+     texto:"Una buena contraseña mezcla letras, numeros y simbolos como #, @ o %. Por ejemplo: Sol_2024! es mucho mas segura que la palabra 'hola'. Nunca uses tu nombre ni fechas faciles de adivinar.",
+     saber:"La contraseña más usada del mundo es 123456. ¡Es como cerrar la puerta de casa y dejar la llave puesta!"},
+    {titulo:"El procesador",
+     texto:"El procesador es el cerebro del ordenador. Hace millones de operaciones cada segundo (mas de 3.000 millones en 1 segundo). Cuanto mas rapido es, mejor funcionan los juegos y los programas.",
+     saber:"Un procesador moderno hace en un segundo más cuentas de las que un humano haría en toda su vida. ¡Y sin equivocarse!"},
+    {titulo:"La World Wide Web",
+     texto:"En 1989, Tim Berners-Lee invento la Web (las paginas que ves con el navegador). Escribio el codigo con simbolos como <p>, </html> y http://. Hoy existen mas de 1.900 millones de webs en el mundo.",
+     saber:"La primera web del mundo todavía funciona y sigue online. ¡Fue la página número 1 de internet!"},
+    {titulo:"Depurar errores (bugs)",
+     texto:"Cuando un programa falla decimos que tiene un 'bug' (bicho en ingles). Los programadores buscan el error entre miles de lineas de codigo, como { }, ; y (). Arreglarlo se llama 'debug'.",
+     saber:"El primer 'bug' fue real: en 1947 una polilla se metió en un ordenador y lo estropeó. ¡Por eso a los errores los llamamos bichos!"},
+    {titulo:"Programar de verdad",
+     texto:"Programar es dar ordenes al ordenador con instrucciones exactas. Por ejemplo: si (edad > 18) entonces { mostrar 'mayor'; }. El ordenador hace justo lo que dice el codigo, ni mas ni menos.",
+     saber:"El ordenador es muy obediente pero nada listo: si te equivocas en un solo símbolo, no funciona. ¡Hay que ser súper preciso!"},
+  ],
+};
+let copia = null;
+let copiaTextoActual = null;
+let nivelActual = null;
+
+function elegirNivel(nivel){
+  nivelActual = nivel;
+  const sel = document.getElementById('selectTexto');
+  sel.innerHTML = '<option value="">— elige un texto —</option>';
+  TEXTOS[nivel].forEach((t,i)=>{
+    const o=document.createElement('option');
+    o.value=i; o.textContent=t.titulo;
+    sel.appendChild(o);
+  });
+  document.getElementById('zonaTextos').style.display='block';
+  // marcar botón activo
+  document.querySelectorAll('.btn-nivel').forEach(b=>b.classList.remove('activo'));
+  document.getElementById('niv-'+nivel).classList.add('activo');
+}
+function cargarTextoElegido(){
+  const i = document.getElementById('selectTexto').value;
+  if(i==="") return;
+  empezarCopia(TEXTOS[nivelActual][i]);
+}
+function usarTextoPropio(){
+  const t = document.getElementById('textoPropio').value.trim();
+  if(t.length < 10){ alert("Escribe un texto un poco más largo (al menos 10 letras)."); return; }
+  empezarCopia({titulo:"Tu texto", texto:t, saber:"¡Genial! Has practicado con tu propio texto. Puedes probar con noticias, curiosidades o lo que más te guste."});
+}
+function empezarCopia(obj){
+  copiaTextoActual = obj;
+  document.getElementById('copiaSelector').style.display='none';
+  document.getElementById('copiaJuego').style.display='block';
+  document.getElementById('copiaSaber').style.display='none';
+  document.getElementById('copiaOtro').style.display='none';
+  copia = {texto:obj.texto, inicio:null, terminado:false};
+  const inp = document.getElementById('copiaInput');
+  inp.value=""; inp.disabled=false;
+  pintarCopia("");
+  document.getElementById('copiaPpm').textContent=0;
+  document.getElementById('copiaPrec').textContent=100;
+  document.getElementById('copiaProg').textContent=0;
+  inp.focus();
+}
+function pintarCopia(escrito){
+  const objetivo = copia.texto;
+  let html="";
+  for(let i=0;i<objetivo.length;i++){
+    const ch = objetivo[i]==='&'?'&amp;':objetivo[i]==='<'?'&lt;':objetivo[i];
+    if(i<escrito.length){
+      if(escrito[i]===objetivo[i]) html+=`<span style="color:var(--verde);background:#eaf6d8;border-radius:3px">${ch}</span>`;
+      else html+=`<span style="color:#fff;background:#e05252;border-radius:3px">${ch}</span>`;
+    } else {
+      html+=`<span style="color:#b8c4a2">${ch}</span>`;
+    }
+  }
+  document.getElementById('copiaTexto').innerHTML=html;
+}
+document.getElementById('copiaInput').addEventListener('input', function(){
+  if(!copia || copia.terminado) return;
+  if(copia.inicio===null) copia.inicio = Date.now();
+  const escrito = this.value;
+  pintarCopia(escrito);
+  // precisión
+  let ok=0;
+  for(let i=0;i<escrito.length;i++){ if(escrito[i]===copia.texto[i]) ok++; }
+  const prec = escrito.length? Math.round(ok/escrito.length*100):100;
+  document.getElementById('copiaPrec').textContent=prec;
+  // progreso
+  const prog = Math.round(escrito.length/copia.texto.length*100);
+  document.getElementById('copiaProg').textContent=Math.min(prog,100);
+  // ppm en vivo
+  const mins = (Date.now()-copia.inicio)/60000;
+  if(mins>0){
+    const palabras = escrito.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('copiaPpm').textContent=Math.round(palabras/mins);
+  }
+  // terminado
+  if(escrito.length >= copia.texto.length){
+    finCopia(prec);
+  }
+});
+function finCopia(prec){
+  copia.terminado=true;
+  document.getElementById('copiaInput').disabled=true;
+  const mins = (Date.now()-copia.inicio)/60000;
+  const palabras = copia.texto.trim().split(/\s+/).length;
+  const ppm = Math.round(palabras/Math.max(mins,0.01));
+  document.getElementById('copiaPpm').textContent=ppm;
+  const ganado = 10 + Math.round(prec/10);
+  sumarPuntos(ganado);
+  const box = document.getElementById('copiaSaber');
+  box.innerHTML = `<b>¡Texto completado! +${ganado} puntos</b> · Escribiste a <b>${ppm} palabras por minuto</b> con <b>${prec}%</b> de acierto.<br><br><b>¿Sabías que...?</b> ${copiaTextoActual.saber}`;
+  box.style.display='block';
+  document.getElementById('copiaOtro').style.display='block';
+}
+function reiniciarCopia(){
+  document.getElementById('copiaSelector').style.display='block';
+  document.getElementById('copiaJuego').style.display='none';
+  document.getElementById('zonaTextos').style.display='none';
+  document.getElementById('selectTexto').innerHTML="";
+  document.getElementById('textoPropio').value="";
+  document.querySelectorAll('.btn-nivel').forEach(b=>b.classList.remove('activo'));
+  nivelActual=null;
+  copia=null;
+}
+
+/* =================== JUEGO 3: QUIZ =================== */
+const PREGUNTAS = [
+  {p:"¿Por qué se llama teclado QWERTY?", 
+   o:["Por su inventor, el señor Qwerty","Porque esas son las 6 primeras letras de la fila de arriba","Porque suena bien","Porque es de un videojuego"],
+   c:1, f:"¡Exacto! Q-W-E-R-T-Y son las 6 primeras teclas de la fila de arriba (la fila dominante). Por eso el teclado tiene ese nombre tan raro."},
+  {p:"¿Sobre qué teclas se colocan los dedos índice sin mirar?",
+   o:["A y Ñ","Q y P","F y J","G y H"],
+   c:2, f:"¡Bien! Las teclas F y J tienen una pequeña rayita en relieve. Así encuentras la posición inicial solo con el tacto, sin mirar el teclado."},
+  {p:"¿Qué dedo pulsa la barra espaciadora?",
+   o:["El índice","El meñique","Los pulgares","El anular"],
+   c:2, f:"¡Correcto! La barra espaciadora se pulsa con los pulgares, normalmente alternando entre las dos manos."},
+  {p:"'Escribir al tacto' significa...",
+   o:["Escribir muy suave","Escribir sin mirar las teclas","Tocar la pantalla","Escribir con guantes"],
+   c:1, f:"¡Eso es! Escribir al tacto es teclear sin mirar, dejando que los dedos recuerden dónde está cada letra. Como un pianista que no mira el piano."},
+  {p:"¿Cómo se llama la fila donde descansan los dedos (A S D F...)?",
+   o:["Fila superior","Fila central o normal","Fila numérica","Fila de abajo"],
+   c:1, f:"¡Muy bien! Es la fila central o normal. Es la 'base' desde donde los dedos salen a pulsar otras teclas y a la que siempre vuelven."},
+  {p:"¿Para qué sirve la tecla Shift (Mayús)?",
+   o:["Para borrar","Para escribir en mayúsculas","Para hacer espacio","Para apagar el PC"],
+   c:1, f:"¡Correcto! Shift (o Mayús) sirve para escribir mayúsculas y los símbolos de la parte de arriba de las teclas."},
+  {p:"¿Qué NO debes hacer para aprender a escribir rápido?",
+   o:["Practicar cada día","Colocar bien los dedos","Mirar el teclado todo el rato","Ir sin prisa al principio"],
+   c:2, f:"¡Eso es! Si miras el teclado todo el rato, tus dedos nunca aprenden solos. Aunque cueste al principio, hay que confiar en el tacto."},
+  {p:"La letra Ñ está en un teclado de tipo...",
+   o:["Inglés","Español","Japonés","Numérico"],
+   c:1, f:"¡Bien! La Ñ y la Ç aparecen en el teclado español, que es el que usamos en España. Los teclados ingleses no tienen Ñ."},
+];
+let quizIdx=0, quizContestada=false;
+
+function iniciarQuiz(){
+  quizIdx=0;
+  mostrarPregunta();
+}
+function mostrarPregunta(){
+  quizContestada=false;
+  const q = PREGUNTAS[quizIdx];
+  document.getElementById('quizNum').textContent=`Pregunta ${quizIdx+1} de ${PREGUNTAS.length}`;
+  document.getElementById('quizPreg').textContent=q.p;
+  const ops = document.getElementById('quizOps');
+  ops.innerHTML="";
+  q.o.forEach((texto,i)=>{
+    const b=document.createElement('button');
+    b.className="quiz-op";
+    b.textContent=texto;
+    b.onclick=()=>responder(i,b);
+    ops.appendChild(b);
+  });
+  document.getElementById('quizFeedback').classList.remove('mostrar');
+  document.getElementById('quizNext').style.display='none';
+}
+function responder(i,btn){
+  if(quizContestada) return;
+  quizContestada=true;
+  const q=PREGUNTAS[quizIdx];
+  const botones=document.querySelectorAll('.quiz-op');
+  if(i===q.c){
+    btn.classList.add('acierto');
+    sumarPuntos(5);
+    document.getElementById('quizFeedback').textContent="¡Correcto! "+q.f;
+  } else {
+    btn.classList.add('fallo');
+    botones[q.c].classList.add('acierto');
+    document.getElementById('quizFeedback').textContent="Casi. "+q.f;
+  }
+  document.getElementById('quizFeedback').classList.add('mostrar');
+  const nx=document.getElementById('quizNext');
+  nx.style.display='block';
+  nx.textContent = (quizIdx < PREGUNTAS.length-1) ? "Siguiente →" : "Ver resultado";
+}
+function siguientePregunta(){
+  if(quizIdx < PREGUNTAS.length-1){
+    quizIdx++;
+    mostrarPregunta();
+  } else {
+    const card = document.querySelector('#quiz .quiz-card');
+    card.innerHTML = `<div style="text-align:center">
+      <div style="font-size:60px">🏆</div>
+      <h2 style="font-size:28px;margin:10px 0">¡Reto completado!</h2>
+      <p style="color:var(--gris);font-size:17px">Has repasado todo lo del teclado.</p>
+      <p style="font-size:40px;font-weight:bold;color:var(--verde);margin:10px 0">⭐ `+puntos+` pts</p>
+      <button class="boton-grande" onclick="irA('menu')">Volver al menú</button>
+    </div>`;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Archivos del sistema que no hace falta subir
+.DS_Store
+Thumbs.db
+*.tmp
+*~
+.vscode/
+
+# Bundle redundante del propio proyecto
+*.zip
+
+# Configuración local de herramientas
+.claude/
