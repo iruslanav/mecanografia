@@ -18,7 +18,7 @@
     overflow:hidden; -webkit-user-select:none; user-select:none; touch-action:manipulation;
   }
   #app{position:fixed; inset:0; display:flex; align-items:center; justify-content:center}
-  .screen{width:min(640px,100vw); height:min(940px,100vh); position:relative; display:flex; flex-direction:column}
+  .screen{width:min(700px,100vw); height:100vh; height:100dvh; position:relative; display:flex; flex-direction:column}
 
   /* ---------- MENU ---------- */
   #menu{padding:22px 20px; overflow-y:auto}
@@ -30,6 +30,11 @@
     text-align:center; cursor:pointer; transition:.15s; }
   .mode .ic{font-size:30px} .mode .nm{font-weight:700; margin-top:4px} .mode .ds{font-size:11px; color:var(--muted)}
   .mode.on{border-color:var(--accent); box-shadow:0 0 0 2px rgba(34,211,238,.25), 0 10px 30px -10px rgba(34,211,238,.5); transform:translateY(-2px)}
+  .speeds{display:flex; gap:8px; margin-bottom:6px}
+  .speed{flex:1; border:1px solid var(--line); background:var(--card); border-radius:12px; padding:9px 4px; text-align:center; cursor:pointer; transition:.15s}
+  .speed .ic{font-size:20px} .speed .nm{font-size:11px; color:var(--muted); margin-top:3px; font-weight:700}
+  .speed.on{border-color:var(--accent2); box-shadow:0 0 0 2px rgba(167,139,250,.3)}
+  .speed.on .nm{color:var(--ink)}
   .lbl{font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin:6px 2px 10px}
   .lvl{display:flex; align-items:center; justify-content:space-between; margin:18px 2px 9px; padding-bottom:6px; border-bottom:1px solid var(--line)}
   .lvl:first-child{margin-top:4px}
@@ -94,7 +99,10 @@
       </div>
     </div>
 
-    <div class="lbl">Niveles — elige una canción</div>
+    <div class="lbl">Velocidad — elige tu nivel</div>
+    <div class="speeds" id="speeds"></div>
+
+    <div class="lbl">Canciones — elige una</div>
     <div id="songs"></div>
 
     <div class="hint" id="controls-hint"></div>
@@ -190,7 +198,16 @@ const MODES = {
             colors:['#22c55e','#ef4444','#eab308','#3b82f6','#f97316'],
             keyLabels:['A','S','D','K','L'] },
 };
-const SPEED = { 'Fácil':0.9, 'Media':1.08, 'Difícil':1.32 };
+/* Niveles de velocidad que el jugador elige antes de empezar.
+   scale = cuánto se estira el tempo (mayor = más lento);
+   approach = segundos que tarda una nota en bajar hasta la línea (más = más previsualización) */
+const SPEEDS = [
+  { id:'facil',  ic:'🐢', name:'Principiante', scale:1.6,  approach:2.9 },
+  { id:'lento',  ic:'🚶', name:'Tranquilo',    scale:1.3,  approach:2.4 },
+  { id:'normal', ic:'🎵', name:'Normal',       scale:1.0,  approach:2.0 },
+  { id:'rapido', ic:'⚡', name:'Experto',      scale:0.82, approach:1.55 },
+];
+let curSpeed = 'lento';
 
 /* ---------- Audio ---------- */
 let actx=null, comp=null, masterVol=null, muted=false;
@@ -243,7 +260,7 @@ function resize(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   hitLineY = H - 124;
 }
-window.addEventListener('resize', ()=>{ if(game){ resize(); } });
+window.addEventListener('resize', ()=>{ if(game){ resize(); if(game.approach) game.v = hitLineY/game.approach; } });
 
 /* Estrellas de fondo (decoración) */
 let stars=[];
@@ -251,11 +268,13 @@ function makeStars(){ stars=[]; for(let i=0;i<60;i++) stars.push({x:Math.random(
 makeStars();
 
 /* ---------- Construir partida ---------- */
-function buildGame(song, modeName){
+function buildGame(song, modeName, speedId){
   const cfg = MODES[modeName];
-  const spb = 60/song.bpm;                 // segundos por beat
-  const v = 320 * SPEED[song.diff];        // px por segundo (velocidad de caída)
-  const lead = 2.2;                        // segundos antes de la primera nota
+  const preset = SPEEDS.find(s=>s.id===speedId) || SPEEDS[1];
+  const spb = (60/song.bpm) * preset.scale;   // segundos por beat (estirado por la velocidad elegida)
+  const approach = preset.approach;           // segundos que la nota tarda en llegar a la línea
+  const v = hitLineY / approach;              // px/s para lograr esa previsualización
+  const lead = approach + 0.8;                // margen antes de la primera nota
 
   // rango de tonos para mapear a carriles
   let lo=999, hi=0;
@@ -275,7 +294,7 @@ function buildGame(song, modeName){
   });
 
   return {
-    song, mode:modeName, cfg, v,
+    song, mode:modeName, cfg, v, approach,
     notes, nextIndex:0, resolved:0,
     lastTime: t + 0.5,
     score:0, combo:0, maxCombo:0, hits:0, judged:0, health:100,
@@ -416,7 +435,7 @@ function render(){
     for(let i=0;i<g.notes.length;i++){
       const n=g.notes[i];
       const bottom = hitLineY - (n.time - g.T)*v;
-      const h = Math.max(46, n.dur*v) - 4;
+      const h = Math.max(62, n.dur*v) - 4;
       const top = bottom - h;
       if(bottom<-4 || top>H) continue;
       const x=n.lane*laneW+4, w=laneW-8;
@@ -429,9 +448,9 @@ function render(){
       ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1.5; ctx.stroke();
       if(!n.hit && !n.missed){                        // letra a pulsar sobre la ficha
         ctx.fillStyle='rgba(255,255,255,.95)';
-        ctx.font='800 '+Math.min(30,w*0.4)+'px Segoe UI, sans-serif';
+        ctx.font='800 '+Math.min(42,w*0.44)+'px Segoe UI, sans-serif';
         ctx.textAlign='center'; ctx.textBaseline='middle';
-        const ly=Math.max(top+18, Math.min(bottom-18, (top+bottom)/2));
+        const ly=Math.max(top+20, Math.min(bottom-20, (top+bottom)/2));
         ctx.fillText(g.cfg.keyLabels[n.lane], x+w/2, ly);
       }
       if(!n.hit && !n.missed && i===g.nextIndex){   // marca la siguiente
@@ -523,7 +542,7 @@ function startSong(song, modeName){
   document.getElementById('menu').style.display='none';
   document.getElementById('game').classList.add('show');
   resize();
-  game = buildGame(song, modeName);
+  game = buildGame(song, modeName, curSpeed);
   document.getElementById('hSong').textContent = song.name;
   updateHUD();
   if(!raf) loop();
@@ -620,6 +639,15 @@ const LEVELS=[
   {n:2, diff:'Media',   ic:'🟡'},
   {n:3, diff:'Difícil', ic:'🔴'},
 ];
+function renderSpeeds(){
+  const wrap=document.getElementById('speeds'); wrap.innerHTML='';
+  SPEEDS.forEach(sp=>{
+    const el=document.createElement('div'); el.className='speed'+(sp.id===curSpeed?' on':'');
+    el.innerHTML='<div class="ic">'+sp.ic+'</div><div class="nm">'+sp.name+'</div>';
+    el.onclick=()=>{ curSpeed=sp.id; renderSpeeds(); };
+    wrap.appendChild(el);
+  });
+}
 function renderSongs(){
   const wrap=document.getElementById('songs'); wrap.innerHTML='';
   LEVELS.forEach(lv=>{
@@ -645,7 +673,7 @@ document.querySelectorAll('.mode').forEach(m=>{
     m.classList.add('on'); curMode=m.dataset.mode; renderControlsHint();
   };
 });
-renderSongs(); renderControlsHint();
+renderSpeeds(); renderSongs(); renderControlsHint();
 </script>
 </body>
 </html>
