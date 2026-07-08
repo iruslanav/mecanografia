@@ -18,7 +18,7 @@
     overflow:hidden; -webkit-user-select:none; user-select:none; touch-action:manipulation;
   }
   #app{position:fixed; inset:0; display:flex; align-items:center; justify-content:center}
-  .screen{width:min(520px,100vw); height:min(920px,100vh); position:relative; display:flex; flex-direction:column}
+  .screen{width:min(640px,100vw); height:min(940px,100vh); position:relative; display:flex; flex-direction:column}
 
   /* ---------- MENU ---------- */
   #menu{padding:22px 20px; overflow-y:auto}
@@ -31,7 +31,11 @@
   .mode .ic{font-size:30px} .mode .nm{font-weight:700; margin-top:4px} .mode .ds{font-size:11px; color:var(--muted)}
   .mode.on{border-color:var(--accent); box-shadow:0 0 0 2px rgba(34,211,238,.25), 0 10px 30px -10px rgba(34,211,238,.5); transform:translateY(-2px)}
   .lbl{font-size:12px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin:6px 2px 10px}
-  .songs{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .lvl{display:flex; align-items:center; justify-content:space-between; margin:18px 2px 9px; padding-bottom:6px; border-bottom:1px solid var(--line)}
+  .lvl:first-child{margin-top:4px}
+  .lvl .lvn{font-weight:800; font-size:16px}
+  .lvl .lvd{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  .songs-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
   .song{border:1px solid var(--line); background:var(--card); border-radius:14px; padding:12px; cursor:pointer; transition:.15s}
   .song:hover{border-color:var(--accent2); transform:translateY(-2px)}
   .song .t{font-weight:700; font-size:15px} .song .c{font-size:11px; color:var(--muted); margin-top:2px}
@@ -69,7 +73,7 @@
   .btn{display:inline-block; border:none; cursor:pointer; font-weight:800; font-size:15px; padding:13px 20px; border-radius:12px; margin:5px 4px 0}
   .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#06122a}
   .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink)}
-  @media (max-width:430px){ .songs{grid-template-columns:1fr} }
+  @media (max-width:430px){ .songs-grid{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -90,8 +94,8 @@
       </div>
     </div>
 
-    <div class="lbl">Elige una canción</div>
-    <div class="songs" id="songs"></div>
+    <div class="lbl">Niveles — elige una canción</div>
+    <div id="songs"></div>
 
     <div class="hint" id="controls-hint"></div>
     <div class="foot">Melodías de dominio público + temas originales. Sonido generado con Web Audio (sin archivos externos).</div>
@@ -237,7 +241,7 @@ function resize(){
   W = r.width; H = r.height;
   cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  hitLineY = H - 96;
+  hitLineY = H - 124;
 }
 window.addEventListener('resize', ()=>{ if(game){ resize(); } });
 
@@ -423,6 +427,13 @@ function render(){
       gg.addColorStop(0, hexA(col,.95)); gg.addColorStop(1, hexA(col,.65));
       ctx.fillStyle=gg; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1.5; ctx.stroke();
+      if(!n.hit && !n.missed){                        // letra a pulsar sobre la ficha
+        ctx.fillStyle='rgba(255,255,255,.95)';
+        ctx.font='800 '+Math.min(30,w*0.4)+'px Segoe UI, sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        const ly=Math.max(top+18, Math.min(bottom-18, (top+bottom)/2));
+        ctx.fillText(g.cfg.keyLabels[n.lane], x+w/2, ly);
+      }
       if(!n.hit && !n.missed && i===g.nextIndex){   // marca la siguiente
         ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=2.5; roundRect(x,top,w,h,10); ctx.stroke();
       }
@@ -440,23 +451,43 @@ function render(){
       else{ const gg=ctx.createRadialGradient(cx,cy-4,2,cx,cy,rad); gg.addColorStop(0,'#fff'); gg.addColorStop(.4,col); gg.addColorStop(1,hexA(col,.6)); ctx.fillStyle=gg; }
       ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,.35)'; ctx.lineWidth=2; ctx.stroke();
+      if(!n.hit && !n.missed){                        // letra a pulsar sobre la gema
+        ctx.fillStyle='#0b1020';
+        ctx.font='800 '+Math.round(rad*0.9)+'px Segoe UI, sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(g.cfg.keyLabels[n.lane], cx, cy);
+      }
     }
   }
 
-  // línea de golpeo + objetivos
+  // línea de golpeo
   ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=3;
   ctx.shadowColor='#22d3ee'; ctx.shadowBlur=16;
   ctx.beginPath(); ctx.moveTo(0,hitLineY); ctx.lineTo(W,hitLineY); ctx.stroke();
   ctx.shadowBlur=0;
 
-  // pads / etiquetas de tecla
+  // aros objetivo (guitar)
+  if(g.mode==='guitar'){
+    for(let i=0;i<lanes;i++){ const cx=(i+0.5)*laneW;
+      ctx.beginPath(); ctx.arc(cx,hitLineY, Math.min(laneW*0.34,26),0,Math.PI*2);
+      ctx.strokeStyle=g.cfg.colors[i]; ctx.lineWidth=3; ctx.stroke(); }
+  }
+
+  // teclado inferior con las letras a pulsar (estilo Piano Tiles)
+  const padTop=hitLineY+12, padH=H-padTop-10;
   for(let i=0;i<lanes;i++){
-    const cx=(i+0.5)*laneW, col=g.cfg.colors[i];
-    if(g.mode==='guitar'){ ctx.beginPath(); ctx.arc(cx,hitLineY, Math.min(laneW*0.34,26),0,Math.PI*2);
-      ctx.strokeStyle=col; ctx.lineWidth=3; ctx.stroke(); }
-    ctx.fillStyle='rgba(255,255,255,.85)'; ctx.font='700 15px Segoe UI, sans-serif';
+    const x=i*laneW+5, w=laneW-10, col=g.cfg.colors[i];
+    const f=g.laneFlash[i], age=g.T-f.t, active=age<0.16 && f.kind;
+    const gg=ctx.createLinearGradient(0,padTop,0,padTop+padH);
+    if(active && f.kind==='miss'){ gg.addColorStop(0,'rgba(239,68,68,.9)'); gg.addColorStop(1,'rgba(239,68,68,.4)'); }
+    else if(active){ gg.addColorStop(0,hexA(col,.98)); gg.addColorStop(1,hexA(col,.55)); }
+    else { gg.addColorStop(0,hexA(col,.26)); gg.addColorStop(1,hexA(col,.10)); }
+    roundRect(x,padTop,w,padH,14); ctx.fillStyle=gg; ctx.fill();
+    ctx.strokeStyle=hexA(col,.85); ctx.lineWidth=2; roundRect(x,padTop,w,padH,14); ctx.stroke();
+    ctx.fillStyle = (active && f.kind!=='miss') ? '#0b1020' : '#fff';
+    ctx.font='800 '+Math.min(38,w*0.44)+'px Segoe UI, sans-serif';
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(g.cfg.keyLabels[i], cx, H-40);
+    ctx.fillText(g.cfg.keyLabels[i], x+w/2, padTop+padH/2);
   }
 
   // partículas
@@ -584,15 +615,28 @@ function renderControlsHint(){
       : 'Pulsa la tecla del <b>carril</b> en el momento justo (Perfect / Great / Good).')+
     '<br>Teclas: <b>'+cfg.keyLabels.join(' · ')+'</b> — o toca la pantalla. · Pausa: <b>Esc</b>';
 }
+const LEVELS=[
+  {n:1, diff:'Fácil',   ic:'🟢'},
+  {n:2, diff:'Media',   ic:'🟡'},
+  {n:3, diff:'Difícil', ic:'🔴'},
+];
 function renderSongs(){
   const wrap=document.getElementById('songs'); wrap.innerHTML='';
-  SONGS.forEach(s=>{
-    const el=document.createElement('div'); el.className='song';
-    el.innerHTML='<div class="t">'+s.name+'</div><div class="c">'+s.notes.length+' notas</div>'+
-      '<div class="badges"><span class="badge d-'+s.diff+'">'+s.diff+'</span>'+
-      '<span class="badge">'+s.bpm+' BPM</span></div>';
-    el.onclick=()=>startSong(s,curMode);
-    wrap.appendChild(el);
+  LEVELS.forEach(lv=>{
+    const list=SONGS.filter(s=>s.diff===lv.diff);
+    if(!list.length) return;
+    const hdr=document.createElement('div'); hdr.className='lvl';
+    hdr.innerHTML='<span class="lvn">'+lv.ic+' Nivel '+lv.n+'</span><span class="lvd">'+lv.diff+'</span>';
+    wrap.appendChild(hdr);
+    const grid=document.createElement('div'); grid.className='songs-grid';
+    list.forEach(s=>{
+      const el=document.createElement('div'); el.className='song';
+      el.innerHTML='<div class="t">'+s.name+'</div><div class="c">'+s.notes.length+' notas · '+s.bpm+' BPM</div>'+
+        '<div class="badges"><span class="badge d-'+s.diff+'">'+s.diff+'</span></div>';
+      el.onclick=()=>startSong(s,curMode);
+      grid.appendChild(el);
+    });
+    wrap.appendChild(grid);
   });
 }
 document.querySelectorAll('.mode').forEach(m=>{
