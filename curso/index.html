@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teclado Pro — Curso de mecanografía y atajos</title>
+<style>
+  :root{
+    --bg0:#0a0b1e; --ink:#e8ecff; --muted:#9aa3d0; --card:#171b40; --line:#2a2f63;
+    --accent:#22d3ee; --accent2:#a78bfa; --good:#22c55e; --bad:#ef4444; --warn:#fbbf24;
+    /* colores por dedo */
+    --lp:#f472b6; --lr:#a78bfa; --lm:#60a5fa; --li:#22d3ee;
+    --ri:#34d399; --rm:#a3e635; --rr:#fbbf24; --rp:#fb7185; --th:#94a3b8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0; min-height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; color:var(--ink);
+    background:radial-gradient(1200px 800px at 50% -10%,#1c2150 0%,var(--bg0) 60%); min-height:100vh}
+  .wrap{max-width:900px; margin:0 auto; padding:18px 16px 60px}
+  a{color:var(--accent)}
+  /* Topbar */
+  .top{display:flex; align-items:center; gap:12px; margin-bottom:14px}
+  .top .brand{font-size:22px; font-weight:800;
+    background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .top .grow{flex:1}
+  .btn{border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px;
+    padding:9px 14px; font-weight:700; cursor:pointer; font-size:14px; transition:.15s}
+  .btn:hover{border-color:var(--accent2)}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#06122a; border:none}
+  .btn.sm{padding:6px 10px; font-size:13px}
+  /* Home cards */
+  .hero{color:var(--muted); font-size:14px; margin:2px 2px 18px; line-height:1.5}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px}
+  .lesson{border:1px solid var(--line); background:var(--card); border-radius:16px; padding:16px; cursor:pointer; transition:.15s; position:relative}
+  .lesson:hover{border-color:var(--accent); transform:translateY(-3px); box-shadow:0 16px 40px -20px rgba(34,211,238,.6)}
+  .lesson .ic{font-size:30px} .lesson .t{font-weight:800; font-size:17px; margin-top:6px}
+  .lesson .d{color:var(--muted); font-size:13px; margin-top:4px; line-height:1.45}
+  .lesson .tag{position:absolute; top:12px; right:12px; font-size:10px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--muted)}
+  .lesson .done{color:var(--good); border-color:#2b6b45}
+  /* Views */
+  .view{display:none} .view.show{display:block}
+  h2.title{font-size:24px; margin:6px 0 4px} .lead{color:var(--muted); font-size:14px; margin:0 0 16px; line-height:1.5}
+  .panel{border:1px solid var(--line); background:var(--card); border-radius:16px; padding:18px; margin-bottom:14px}
+  .panel h3{margin:0 0 8px; font-size:16px}
+  .checklist{list-style:none; padding:0; margin:0}
+  .checklist li{display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--line); cursor:pointer}
+  .checklist li:last-child{border-bottom:none}
+  .checklist .box{width:22px; height:22px; border:2px solid var(--line); border-radius:6px; flex:none; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:14px; color:transparent}
+  .checklist li.on .box{background:var(--good); border-color:var(--good); color:#04240f}
+  .checklist li.on .txt{color:var(--muted); text-decoration:line-through}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:640px){ .two{grid-template-columns:1fr} }
+  /* Teclado virtual */
+  .kb{display:flex; flex-direction:column; gap:6px; align-items:center; user-select:none}
+  .kb-row{display:flex; gap:6px; justify-content:center; width:100%}
+  .key{--kc:var(--th); height:44px; min-width:40px; border-radius:9px; border:1.5px solid var(--line);
+    background:color-mix(in srgb, var(--kc) 16%, #10132e); display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; position:relative; transition:.08s; padding:0 6px}
+  .key .bump{position:absolute; bottom:5px; width:12px; height:3px; border-radius:2px; background:rgba(255,255,255,.65)}
+  .key.next{border-color:#fff; box-shadow:0 0 0 3px var(--kc), 0 0 18px var(--kc); background:color-mix(in srgb, var(--kc) 55%, #10132e); color:#06122a}
+  .key.press{transform:translateY(2px); background:color-mix(in srgb, var(--kc) 70%, #10132e); color:#06122a}
+  .key.home{outline:2px dashed rgba(255,255,255,.18); outline-offset:-4px}
+  /* Leyenda de dedos */
+  .legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; justify-content:center}
+  .leg{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)}
+  .leg .dot{width:14px; height:14px; border-radius:4px}
+  /* Práctica */
+  .stats{display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap}
+  .stat{flex:1; min-width:90px; background:#0f1330; border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+  .stat .k{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  .stat .v{font-size:24px; font-weight:800}
+  .levels{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+  .lvbtn{border:1px solid var(--line); background:var(--card); color:var(--muted); border-radius:10px; padding:7px 12px; cursor:pointer; font-size:13px; font-weight:700}
+  .lvbtn.on{border-color:var(--accent); color:var(--ink); box-shadow:0 0 0 2px rgba(34,211,238,.25)}
+  .target{font-size:22px; line-height:1.7; letter-spacing:.5px; font-family:"Consolas","Courier New",monospace; background:#0f1330;
+    border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; min-height:64px; word-break:break-word}
+  .target .c{color:var(--muted); border-radius:3px; padding:1px 0}
+  .target .c.ok{color:var(--good)} .target .c.bad{color:#fff; background:var(--bad)}
+  .target .c.cur{background:var(--accent); color:#06122a}
+  .fingerhint{text-align:center; font-size:14px; color:var(--muted); margin:10px 0}
+  .fingerhint b{color:var(--ink)}
+  /* Lluvia */
+  #fallCv{width:100%; height:440px; display:block; border:1px solid var(--line); border-radius:14px; background:linear-gradient(180deg,#0c1030,#070818); touch-action:none}
+  .hudrow{display:flex; gap:14px; align-items:center; margin-bottom:10px}
+  .hudrow .stat{flex:none; min-width:70px}
+  /* Atajos */
+  .promptcard{text-align:center; padding:26px}
+  .promptcard .act{font-size:32px; font-weight:900; margin:6px 0}
+  .promptcard .desc{color:var(--muted); font-size:14px}
+  .combo{display:inline-flex; gap:6px; margin-top:14px}
+  .kbd{display:inline-block; background:#0f1330; border:1px solid var(--line); border-bottom-width:3px; border-radius:8px; padding:6px 12px; font-weight:800; font-family:"Consolas",monospace}
+  .flash-ok{animation:okp .3s} .flash-bad{animation:badp .3s}
+  @keyframes okp{0%{background:rgba(34,197,94,.25)}100%{background:transparent}}
+  @keyframes badp{0%{background:rgba(239,68,68,.25)}100%{background:transparent}}
+  /* Chuleta */
+  .search{width:100%; padding:11px 14px; border-radius:10px; border:1px solid var(--line); background:#0f1330; color:var(--ink); font-size:14px; margin-bottom:12px}
+  table{width:100%; border-collapse:collapse; font-size:14px}
+  th,td{text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px}
+  td .kbd{padding:3px 7px; font-size:12px; border-bottom-width:2px}
+  .cat{font-weight:800; color:var(--accent2); padding-top:16px}
+  .note{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5}
+  .win-only{display:inline-block; font-size:11px; color:var(--warn); border:1px solid #7a6320; border-radius:999px; padding:2px 9px; margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <span class="brand">⌨️ Teclado Pro</span>
+    <span class="grow"></span>
+    <button class="btn sm" id="btnHome" style="display:none">← Menú</button>
+  </div>
+
+  <!-- HOME -->
+  <div id="home" class="view show">
+    <div class="hero">Aprende a teclear <b>sin mirar</b>, gana velocidad y domina los <b>atajos de teclado</b>.
+      Los ejercicios están pensados para <b>Windows</b>; la chuleta compara Windows, Mac y Linux.</div>
+    <div class="grid" id="lessons"></div>
+  </div>
+
+  <!-- POSTURA -->
+  <div id="postura" class="view">
+    <h2 class="title">🪑 Postura y ergonomía</h2>
+    <p class="lead">La base para escribir rápido y sin lesiones. Marca cada punto cuando lo cumplas.</p>
+    <div class="two">
+      <div class="panel">
+        <h3>Tu cuerpo</h3>
+        <ul class="checklist" data-key="postura-body">
+          <li><span class="box">✓</span><span class="txt">Espalda recta y apoyada; hombros relajados.</span></li>
+          <li><span class="box">✓</span><span class="txt">Pies planos en el suelo; rodillas ~90°.</span></li>
+          <li><span class="box">✓</span><span class="txt">Codos pegados al cuerpo, formando ~90°.</span></li>
+          <li><span class="box">✓</span><span class="txt">Muñecas rectas, sin apoyarlas mientras escribes.</span></li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Tu equipo</h3>
+        <ul class="checklist" data-key="postura-gear">
+          <li><span class="box">✓</span><span class="txt">Parte superior de la pantalla a la altura de los ojos.</span></li>
+          <li><span class="box">✓</span><span class="txt">Pantalla a un brazo de distancia (~50–70 cm).</span></li>
+          <li><span class="box">✓</span><span class="txt">Teclado plano o con ligera inclinación negativa.</span></li>
+          <li><span class="box">✓</span><span class="txt">Descansa la vista 20 seg cada 20 min (regla 20-20-20).</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>La regla de oro 🏠</h3>
+      <p class="lead" style="margin:0">Vuelve <b>siempre</b> a la <b>fila de reposo</b> (<b>A S D F</b> — <b>J K L Ñ</b>). Los dedos índices notan un pequeño <b>relieve en la F y la J</b>: te permiten recolocar las manos sin mirar. Los pulgares descansan sobre la barra espaciadora.</p>
+    </div>
+  </div>
+
+  <!-- DEDOS -->
+  <div id="dedos" class="view">
+    <h2 class="title">✋ Dedos y teclado</h2>
+    <p class="lead">Cada color es un dedo. Pasa el ratón o toca una tecla para ver cuál usar. La fila de reposo va marcada con línea discontinua; fíjate en el relieve de <b>F</b> y <b>J</b>.</p>
+    <div class="panel">
+      <div class="kb" id="kbExplore"></div>
+      <div class="legend" id="legend"></div>
+      <div class="fingerhint" id="exploreHint">Toca una tecla para ver el dedo recomendado.</div>
+    </div>
+  </div>
+
+  <!-- PRACTICA -->
+  <div id="practica" class="view">
+    <h2 class="title">⌨️ Práctica guiada</h2>
+    <p class="lead">Escribe el texto. El teclado te ilumina la próxima tecla y te dice qué dedo usar. Se mide tu velocidad (PPM) y precisión.</p>
+    <div class="levels" id="levels"></div>
+    <div class="stats">
+      <div class="stat"><div class="k">PPM</div><div class="v" id="pWpm">0</div></div>
+      <div class="stat"><div class="k">Precisión</div><div class="v" id="pAcc">100%</div></div>
+      <div class="stat"><div class="k">Progreso</div><div class="v" id="pProg">0%</div></div>
+      <div class="stat"><div class="k">Errores</div><div class="v" id="pErr">0</div></div>
+    </div>
+    <div class="target" id="target"></div>
+    <div class="fingerhint" id="pFinger">Empieza a escribir…</div>
+    <div class="panel"><div class="kb" id="kbPractice"></div></div>
+    <button class="btn sm" id="pRestart">↻ Reiniciar nivel</button>
+  </div>
+
+  <!-- LLUVIA -->
+  <div id="lluvia" class="view">
+    <h2 class="title">🌧️ Lluvia de letras</h2>
+    <p class="lead">Teclea cada letra antes de que llegue al suelo. Los colores indican el dedo. ¡La velocidad sube!</p>
+    <div class="hudrow">
+      <div class="stat"><div class="k">Puntos</div><div class="v" id="fScore">0</div></div>
+      <div class="stat"><div class="k">Vidas</div><div class="v" id="fLives">❤❤❤</div></div>
+      <div class="stat"><div class="k">Nivel</div><div class="v" id="fLevel">1</div></div>
+      <span class="grow"></span>
+      <button class="btn primary" id="fStart">▶ Empezar</button>
+    </div>
+    <canvas id="fallCv"></canvas>
+  </div>
+
+  <!-- ATAJOS -->
+  <div id="atajos" class="view">
+    <h2 class="title">⚡ Reto de atajos <span class="win-only">Windows</span></h2>
+    <p class="lead">Sale una acción y tú pulsas el atajo real en tu teclado. Tienes 45 s: ¡acierta los que puedas! (El juego intercepta las teclas para que el navegador no reaccione.)</p>
+    <div class="hudrow">
+      <div class="stat"><div class="k">Aciertos</div><div class="v" id="sScore">0</div></div>
+      <div class="stat"><div class="k">Tiempo</div><div class="v" id="sTime">45</div></div>
+      <span class="grow"></span>
+      <button class="btn sm" id="sHint">💡 Pista</button>
+      <button class="btn primary" id="sStart">▶ Empezar</button>
+    </div>
+    <div class="panel promptcard" id="sCard">
+      <div class="desc">Pulsa «Empezar» para comenzar el reto.</div>
+      <div class="act" id="sAct">—</div>
+      <div class="desc" id="sDesc"></div>
+      <div class="combo" id="sCombo" style="display:none"></div>
+    </div>
+    <p class="note">⚠️ Evita pulsar por costumbre atajos que cierran o cambian de pestaña (Ctrl+W, Ctrl+T, Alt+Tab…): esos los gestiona el sistema y no forman parte del reto.</p>
+  </div>
+
+  <!-- CHULETA -->
+  <div id="chuleta" class="view">
+    <h2 class="title">📋 Chuleta de atajos</h2>
+    <p class="lead">Los atajos más útiles comparados en <b>Windows</b>, <b>Mac</b> y <b>Linux</b>. Filtra por nombre.</p>
+    <input class="search" id="chSearch" placeholder="Buscar acción… (copiar, captura, ventana…)">
+    <div class="panel" style="overflow-x:auto">
+      <table><thead><tr><th>Acción</th><th>Windows</th><th>Mac</th><th>Linux</th></tr></thead>
+      <tbody id="chBody"></tbody></table>
+    </div>
+    <p class="note">Nota: en Mac ⌘=Command, ⌥=Option, ⌃=Control. En Linux algunos atajos dependen del entorno de escritorio (GNOME/KDE).</p>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ===================== Utilidades / audio ===================== */
+let actx=null;
+function beep(freq, dur, type){
+  try{
+    if(!actx) actx=new (window.AudioContext||window.webkitAudioContext)();
+    const t=actx.currentTime, o=actx.createOscillator(), g=actx.createGain();
+    o.type=type||'sine'; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.14,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.08));
+    o.start(t); o.stop(t+(dur||0.08)+0.02);
+  }catch(e){}
+}
+const okBeep=()=>beep(880,0.06,'triangle');
+const badBeep=()=>beep(150,0.12,'sawtooth');
+
+/* ===================== Dedos / teclado ===================== */
+const FCOLOR={lp:'--lp',lr:'--lr',lm:'--lm',li:'--li',ri:'--ri',rm:'--rm',rr:'--rr',rp:'--rp',th:'--th'};
+const FNAME={lp:'meñique izquierdo',lr:'anular izquierdo',lm:'corazón izquierdo',li:'índice izquierdo',
+  ri:'índice derecho',rm:'corazón derecho',rr:'anular derecho',rp:'meñique derecho',th:'pulgar'};
+const FINGER={
+  'º':'lp','1':'lp','Q':'lp','A':'lp','Z':'lp','<':'lp',
+  '2':'lr','W':'lr','S':'lr','X':'lr',
+  '3':'lm','E':'lm','D':'lm','C':'lm',
+  '4':'li','R':'li','F':'li','V':'li','5':'li','T':'li','G':'li','B':'li',
+  '6':'ri','Y':'ri','H':'ri','N':'ri','7':'ri','U':'ri','J':'ri','M':'ri',
+  '8':'rm','I':'rm','K':'rm',',':'rm',
+  '9':'rr','O':'rr','L':'rr','.':'rr',
+  '0':'rp','P':'rp','Ñ':'rp','-':'rp',"'":'rp','¡':'rp','`':'rp','+':'rp','´':'rp','Ç':'rp'
+};
+const HOME=new Set(['A','S','D','F','J','K','L','Ñ']);
+const KB_ROWS=[
+  ['º','1','2','3','4','5','6','7','8','9','0',"'",'¡','⌫'],
+  ['↹','Q','W','E','R','T','Y','U','I','O','P','`','+'],
+  ['⇪','A','S','D','F','G','H','J','K','L','Ñ','´','Ç','⏎'],
+  ['⇧','<','Z','X','C','V','B','N','M',',','.','-','⇧'],
+  ['Espacio']
+];
+function keyInfo(label, idx){
+  const spec={'⌫':{f:'rp',w:2},'↹':{f:'lp',w:1.5},'⇪':{f:'lp',w:1.9},'⏎':{f:'rp',w:1.8},'Espacio':{f:'th',w:11}};
+  if(label==='⇧') return {f: idx===0?'lp':'rp', w:2.4, special:true, ch:null};
+  if(spec[label]) return {f:spec[label].f, w:spec[label].w, special:true, ch: label==='Espacio'?' ':null};
+  return {f: FINGER[label]||'th', w:1, special:false, ch:label};
+}
+/* Construye un teclado dentro de container. Devuelve un mapa char->elemento */
+function buildKeyboard(container){
+  container.innerHTML=''; const map={};
+  KB_ROWS.forEach(row=>{
+    const r=document.createElement('div'); r.className='kb-row';
+    row.forEach((label,idx)=>{
+      const info=keyInfo(label,idx);
+      const k=document.createElement('div'); k.className='key';
+      k.style.setProperty('--kc','var('+FCOLOR[info.f]+')');
+      k.style.flex=info.w>1?('0 0 '+(info.w*46)+'px'):'0 0 40px';
+      k.textContent=label;
+      k.dataset.finger=info.f;
+      if(!info.special && HOME.has(label)) k.classList.add('home');
+      if(label==='F'||label==='J'){ const b=document.createElement('span'); b.className='bump'; k.appendChild(b); }
+      if(info.ch!=null){ map[info.ch]=k; k.dataset.ch=info.ch; }
+      r.appendChild(k);
+    });
+    container.appendChild(r);
+  });
+  return map;
+}
+function keyForChar(ch){
+  if(ch===' ') return ' ';
+  const up=ch.toUpperCase();
+  return up;
+}
+
+/* ===================== Router de vistas ===================== */
+const VIEWS=['home','postura','dedos','practica','lluvia','atajos','chuleta'];
+let currentView='home';
+function showView(id){
+  if(currentView==='lluvia') stopFall();
+  if(currentView==='atajos') stopShortcut();
+  VIEWS.forEach(v=>document.getElementById(v).classList.toggle('show', v===id));
+  document.getElementById('btnHome').style.display = id==='home'?'none':'inline-block';
+  currentView=id; window.scrollTo(0,0);
+  if(id==='dedos') enterDedos();
+  if(id==='practica') enterPractica();
+  if(id==='lluvia') enterFall();
+  if(id==='chuleta') renderCheat();
+}
+document.getElementById('btnHome').onclick=()=>showView('home');
+
+/* Home cards */
+const LESSONS=[
+  {id:'postura', ic:'🪑', t:'Postura y ergonomía', d:'Cómo sentarte, colocar manos y pantalla.'},
+  {id:'dedos',   ic:'✋', t:'Dedos y teclado', d:'Qué dedo usa cada tecla, con colores.'},
+  {id:'practica',ic:'⌨️', t:'Práctica guiada', d:'Escribe por niveles y mide tu PPM.', tag:'juego'},
+  {id:'lluvia',  ic:'🌧️', t:'Lluvia de letras', d:'Teclea rápido antes de que caigan.', tag:'juego'},
+  {id:'atajos',  ic:'⚡', t:'Reto de atajos', d:'Pulsa el atajo correcto (Windows).', tag:'juego'},
+  {id:'chuleta', ic:'📋', t:'Chuleta de atajos', d:'Windows · Mac · Linux comparados.'},
+];
+(function renderHome(){
+  const wrap=document.getElementById('lessons');
+  LESSONS.forEach(l=>{
+    const el=document.createElement('div'); el.className='lesson';
+    el.innerHTML='<div class="ic">'+l.ic+'</div><div class="t">'+l.t+'</div><div class="d">'+l.d+'</div>'+
+      (l.tag?'<span class="tag">'+l.tag+'</span>':'');
+    el.onclick=()=>showView(l.id);
+    wrap.appendChild(el);
+  });
+})();
+
+/* ===================== Checklists (postura) ===================== */
+document.querySelectorAll('.checklist').forEach(list=>{
+  const key='tp_'+list.dataset.key;
+  const saved=JSON.parse(localStorage.getItem(key)||'[]');
+  [...list.children].forEach((li,i)=>{
+    if(saved.includes(i)) li.classList.add('on');
+    li.onclick=()=>{
+      li.classList.toggle('on');
+      const on=[...list.children].map((x,j)=>x.classList.contains('on')?j:-1).filter(j=>j>=0);
+      localStorage.setItem(key,JSON.stringify(on));
+    };
+  });
+});
+
+/* ===================== Vista Dedos ===================== */
+let dedosBuilt=false, exploreMap={};
+function enterDedos(){
+  if(!dedosBuilt){
+    exploreMap=buildKeyboard(document.getElementById('kbExplore'));
+    // leyenda
+    const leg=document.getElementById('legend');
+    Object.keys(FNAME).forEach(f=>{
+      const s=document.createElement('span'); s.className='leg';
+      s.innerHTML='<span class="dot" style="background:var('+FCOLOR[f]+')"></span>'+FNAME[f];
+      leg.appendChild(s);
+    });
+    // interacción
+    Object.values(exploreMap).forEach(()=>{});
+    document.getElementById('kbExplore').querySelectorAll('.key').forEach(k=>{
+      const f=k.dataset.finger;
+      const show=()=>{ document.getElementById('exploreHint').innerHTML=
+        'Tecla <b>'+k.textContent+'</b> → '+ '<b>'+FNAME[f]+'</b>'; };
+      k.addEventListener('mouseenter',show);
+      k.addEventListener('click',()=>{ show(); k.classList.add('press'); setTimeout(()=>k.classList.remove('press'),120); });
+    });
+    dedosBuilt=true;
+  }
+}
+
+/* ===================== Práctica guiada ===================== */
+const LEVELS=[
+  {n:'Fila central', text:'asdf ñlkj asdf ñlkj fff jjj ddd kkk sss lll aaa ñññ gh gh fj dk sl aña'},
+  {n:'Palabras base', text:'sala gafas gala haga dado falda ajos hojas galas asada'},
+  {n:'Fila superior', text:'que peor rio tuyo teporo quiero puerto tierra reto pito'},
+  {n:'Fila inferior', text:'voz mano cebra vino zumo campo nube bomba cinta lazo'},
+  {n:'Mayúsculas y signos', text:'Hola, que tal. Bien, gracias. Vamos: uno, dos y tres.'},
+  {n:'Números', text:'el ano 2024 tiene 366 dias y 12 meses; 7 dias por semana.'},
+  {n:'Frases', text:'la casa junto al mar es muy bonita y siempre huele a sal marina.'},
+  {n:'Reto final', text:'practicar cada dia mejora tu velocidad y tu precision al teclear.'},
+];
+let practiceMap={}, practiceBuilt=false;
+let P={lv:0, idx:0, errors:0, started:false, startT:0, done:false, spans:[]};
+function enterPractica(){
+  if(!practiceBuilt){ practiceMap=buildKeyboard(document.getElementById('kbPractice')); buildLevelButtons(); practiceBuilt=true; }
+  loadLevel(P.lv);
+}
+function buildLevelButtons(){
+  const wrap=document.getElementById('levels'); wrap.innerHTML='';
+  LEVELS.forEach((lv,i)=>{
+    const b=document.createElement('button'); b.className='lvbtn'+(i===P.lv?' on':'');
+    b.textContent=(i+1)+'. '+lv.n; b.onclick=()=>{ P.lv=i; buildLevelButtons(); loadLevel(i); };
+    wrap.appendChild(b);
+  });
+}
+function loadLevel(i){
+  P={lv:i, idx:0, errors:0, started:false, startT:0, done:false, spans:[]};
+  const text=LEVELS[i].text; const t=document.getElementById('target'); t.innerHTML='';
+  for(const ch of text){ const s=document.createElement('span'); s.className='c'; s.textContent=ch; t.appendChild(s); P.spans.push(s); }
+  updateStats(); highlightNext();
+}
+function highlightNext(){
+  Object.values(practiceMap).forEach(k=>k.classList.remove('next'));
+  P.spans.forEach(s=>s.classList.remove('cur'));
+  if(P.idx>=P.spans.length){ document.getElementById('pFinger').textContent='¡Nivel completado! 🎉'; return; }
+  P.spans[P.idx].classList.add('cur');
+  const ch=LEVELS[P.lv].text[P.idx];
+  const mk=keyForChar(ch); const kEl=practiceMap[mk];
+  if(kEl){ kEl.classList.add('next');
+    const f=kEl.dataset.finger;
+    document.getElementById('pFinger').innerHTML = (ch===' '?'Barra espaciadora':'Tecla «<b>'+ch+'</b>»')+' → <b>'+FNAME[f]+'</b>';
+  }
+}
+function practiceKey(e){
+  if(P.done) return;
+  if(e.key==='Backspace'){ e.preventDefault();
+    if(P.idx>0){ P.idx--; P.spans[P.idx].classList.remove('ok','bad'); highlightNext(); updateStats(); }
+    return;
+  }
+  if(e.key.length!==1) return;              // ignora Shift, flechas, etc.
+  e.preventDefault();
+  const expected=LEVELS[P.lv].text[P.idx];
+  if(!P.started){ P.started=true; P.startT=performance.now(); }
+  if(e.key===expected){
+    P.spans[P.idx].classList.remove('bad'); P.spans[P.idx].classList.add('ok');
+    P.idx++; okBeep(); highlightNext();
+    if(P.idx>=P.spans.length) finishLevel();
+  } else {
+    P.errors++; P.spans[P.idx].classList.add('bad'); badBeep();
+  }
+  updateStats();
+}
+function updateStats(){
+  const total=P.spans.length;
+  const prog=total?Math.round(100*P.idx/total):0;
+  const mins=P.started?(performance.now()-P.startT)/60000:0;
+  const wpm=(P.started && mins>0)?Math.round((P.idx/5)/mins):0;
+  const acc=(P.idx+P.errors)>0?Math.round(100*P.idx/(P.idx+P.errors)):100;
+  document.getElementById('pWpm').textContent=wpm;
+  document.getElementById('pAcc').textContent=acc+'%';
+  document.getElementById('pProg').textContent=prog+'%';
+  document.getElementById('pErr').textContent=P.errors;
+}
+function finishLevel(){
+  P.done=true;
+  const mins=(performance.now()-P.startT)/60000;
+  const wpm=Math.round((P.spans.length/5)/mins);
+  const acc=Math.round(100*P.spans.length/(P.spans.length+P.errors));
+  const key='tp_wpm_'+P.lv; const best=Math.max(parseInt(localStorage.getItem(key)||'0',10),wpm);
+  localStorage.setItem(key,best);
+  document.getElementById('pFinger').innerHTML='🎉 <b>¡Completado!</b> '+wpm+' PPM · '+acc+'% precisión · récord '+best+' PPM';
+  beep(660,0.1,'triangle'); setTimeout(()=>beep(990,0.14,'triangle'),120);
+}
+document.getElementById('pRestart').onclick=()=>loadLevel(P.lv);
+
+/* ===================== Lluvia de letras ===================== */
+const fcv=document.getElementById('fallCv'); const fctx=fcv.getContext('2d');
+let F={items:[],score:0,lives:3,level:1,running:false,last:0,spawn:0,spawnGap:1.4,speed:60,map:{}};
+const FALL_POOL='ASDFGHJKLÑ';           // empieza fácil (fila central) y crece
+function enterFall(){ sizeFall(); drawFallIdle(); }
+function sizeFall(){ const r=fcv.getBoundingClientRect(); const dpr=Math.min(2,window.devicePixelRatio||1);
+  fcv.width=r.width*dpr; fcv.height=r.height*dpr; fctx.setTransform(dpr,0,0,dpr,0,0); F.w=r.width; F.h=r.height; }
+function drawFallIdle(){ fctx.clearRect(0,0,F.w,F.h);
+  fctx.fillStyle='rgba(255,255,255,.5)'; fctx.font='16px Segoe UI'; fctx.textAlign='center';
+  fctx.fillText('Pulsa «Empezar» y teclea las letras que caen', F.w/2, F.h/2); }
+function poolForLevel(lv){ let p='ASDFGHJKLÑ'; if(lv>=2)p+='QWERTYUIOP'; if(lv>=3)p+='ZXCVBNM'; return p; }
+function startFall(){
+  F={items:[],score:0,lives:3,level:1,running:true,last:performance.now(),spawn:0,spawnGap:1.4,speed:70,w:F.w,h:F.h};
+  updateFallHud(); requestAnimationFrame(fallLoop);
+}
+function stopFall(){ F.running=false; }
+function updateFallHud(){
+  document.getElementById('fScore').textContent=F.score;
+  document.getElementById('fLives').textContent='❤'.repeat(Math.max(0,F.lives))||'—';
+  document.getElementById('fLevel').textContent=F.level;
+}
+function fallLoop(now){
+  if(!F.running) return;
+  const dt=Math.min(0.05,(now-F.last)/1000); F.last=now;
+  F.spawn+=dt;
+  F.level=1+Math.floor(F.score/12); F.speed=70+F.level*14; F.spawnGap=Math.max(0.55,1.4-F.level*0.08);
+  if(F.spawn>=F.spawnGap){ F.spawn=0; spawnLetter(); }
+  fctx.clearRect(0,0,F.w,F.h);
+  // suelo
+  fctx.strokeStyle='rgba(239,68,68,.5)'; fctx.lineWidth=2; fctx.beginPath(); fctx.moveTo(0,F.h-6); fctx.lineTo(F.w,F.h-6); fctx.stroke();
+  for(let i=F.items.length-1;i>=0;i--){ const it=F.items[i]; it.y+=F.speed*dt;
+    fctx.font='800 30px Segoe UI'; fctx.textAlign='center'; fctx.textBaseline='middle';
+    fctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue(FCOLOR[it.f]).trim();
+    fctx.beginPath(); fctx.arc(it.x,it.y,22,0,7); fctx.globalAlpha=.18; fctx.fill(); fctx.globalAlpha=1;
+    fctx.fillStyle='#fff'; fctx.fillText(it.ch,it.x,it.y+1);
+    if(it.y>F.h-10){ F.items.splice(i,1); F.lives--; badBeep(); updateFallHud();
+      if(F.lives<=0){ endFall(); return; } }
+  }
+  updateFallHud();
+  requestAnimationFrame(fallLoop);
+}
+function spawnLetter(){
+  const pool=poolForLevel(F.level); const ch=pool[Math.floor(Math.random()*pool.length)];
+  const x=30+Math.random()*(F.w-60);
+  F.items.push({ch,x,y:-10,f:FINGER[ch]||'th'});
+}
+function fallKey(e){
+  if(!F.running){ return; }
+  if(e.key.length!==1) return; const up=e.key.toUpperCase();
+  let best=-1,by=-1;
+  for(let i=0;i<F.items.length;i++){ if(F.items[i].ch===up && F.items[i].y>by){ by=F.items[i].y; best=i; } }
+  if(best>=0){ F.items.splice(best,1); F.score++; okBeep(); updateFallHud(); }
+}
+document.getElementById('fStart').onclick=()=>{ if(!actx) beep(1,0.01); startFall(); };
+window.addEventListener('resize',()=>{ if(currentView==='lluvia'){ sizeFall(); if(!F.running) drawFallIdle(); } });
+
+/* ===================== Reto de atajos (Windows) ===================== */
+const SHORTCUTS=[
+  {act:'Copiar', desc:'Duplica lo seleccionado al portapapeles', combo:'Ctrl+C'},
+  {act:'Pegar', desc:'Inserta lo copiado', combo:'Ctrl+V'},
+  {act:'Cortar', desc:'Mueve lo seleccionado al portapapeles', combo:'Ctrl+X'},
+  {act:'Deshacer', desc:'Revierte la última acción', combo:'Ctrl+Z'},
+  {act:'Rehacer', desc:'Repite lo deshecho', combo:'Ctrl+Y'},
+  {act:'Seleccionar todo', desc:'Marca todo el contenido', combo:'Ctrl+A'},
+  {act:'Guardar', desc:'Guarda el documento', combo:'Ctrl+S'},
+  {act:'Buscar', desc:'Abre el buscador', combo:'Ctrl+F'},
+  {act:'Negrita', desc:'Aplica negrita al texto', combo:'Ctrl+B'},
+  {act:'Cursiva', desc:'Aplica cursiva al texto', combo:'Ctrl+I'},
+  {act:'Imprimir', desc:'Abre el diálogo de impresión', combo:'Ctrl+P'},
+  {act:'Ir al inicio de la línea', desc:'Lleva el cursor al principio', combo:'Home'},
+  {act:'Ir al final de la línea', desc:'Lleva el cursor al final', combo:'End'},
+  {act:'Borrar la palabra anterior', desc:'Elimina la palabra a la izquierda', combo:'Ctrl+Backspace'},
+];
+let SH={running:false, i:0, score:0, time:45, order:[], timer:null};
+function parseCombo(str){
+  const p={ctrl:false,alt:false,shift:false,meta:false,key:null};
+  str.split('+').forEach(part=>{
+    const s=part.trim().toLowerCase();
+    if(s==='ctrl')p.ctrl=true; else if(s==='alt')p.alt=true; else if(s==='shift')p.shift=true;
+    else if(s==='win'||s==='cmd'||s==='meta')p.meta=true;
+    else p.key=part.trim().length===1?part.trim().toUpperCase():part.trim();
+  });
+  return p;
+}
+function keyName(e){
+  if(e.key==='Backspace')return'Backspace'; if(e.key==='Home')return'Home'; if(e.key==='End')return'End';
+  if(e.key.length===1) return e.key.toUpperCase();
+  return e.key;
+}
+function startShortcut(){
+  SH.running=true; SH.i=0; SH.score=0; SH.time=45;
+  SH.order=[...Array(SHORTCUTS.length).keys()]; for(let i=SH.order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[SH.order[i],SH.order[j]]=[SH.order[j],SH.order[i]];}
+  document.getElementById('sScore').textContent='0';
+  document.getElementById('sStart').textContent='⟳ Reiniciar';
+  if(SH.timer) clearInterval(SH.timer);
+  SH.timer=setInterval(()=>{ SH.time--; document.getElementById('sTime').textContent=SH.time; if(SH.time<=0) endShortcut(); },1000);
+  document.getElementById('sTime').textContent='45';
+  nextShortcut();
+}
+function stopShortcut(){ SH.running=false; if(SH.timer){clearInterval(SH.timer); SH.timer=null;} }
+function nextShortcut(){
+  const s=SHORTCUTS[SH.order[SH.i%SH.order.length]];
+  document.getElementById('sAct').textContent=s.act;
+  document.getElementById('sDesc').textContent=s.desc;
+  document.getElementById('sCombo').style.display='none';
+  document.getElementById('sCombo').innerHTML=s.combo.split('+').map(x=>'<span class="kbd">'+x.trim()+'</span>').join('');
+}
+function shortcutKey(e){
+  if(!SH.running) return;
+  if(['Control','Alt','Shift','Meta'].includes(e.key)) return;   // espera a la tecla real
+  e.preventDefault();
+  const want=parseCombo(SHORTCUTS[SH.order[SH.i%SH.order.length]].combo);
+  const got={ctrl:e.ctrlKey,alt:e.altKey,shift:e.shiftKey,meta:e.metaKey,key:keyName(e)};
+  const ok = got.ctrl===want.ctrl && got.alt===want.alt && got.shift===want.shift && got.key===want.key;
+  const card=document.getElementById('sCard');
+  if(ok){ SH.score++; SH.i++; document.getElementById('sScore').textContent=SH.score; okBeep();
+    card.classList.remove('flash-bad'); card.classList.add('flash-ok'); setTimeout(()=>card.classList.remove('flash-ok'),300);
+    nextShortcut();
+  } else {
+    badBeep(); card.classList.remove('flash-ok'); card.classList.add('flash-bad'); setTimeout(()=>card.classList.remove('flash-bad'),300);
+  }
+}
+function endShortcut(){
+  stopShortcut();
+  document.getElementById('sAct').textContent='⏱ ¡Tiempo!';
+  document.getElementById('sDesc').textContent='Aciertos: '+SH.score+'. Pulsa «Reiniciar» para volver a intentarlo.';
+  document.getElementById('sStart').textContent='▶ Empezar';
+  const best=Math.max(parseInt(localStorage.getItem('tp_sc')||'0',10),SH.score); localStorage.setItem('tp_sc',best);
+}
+document.getElementById('sStart').onclick=()=>{ if(!actx) beep(1,0.01); startShortcut(); };
+document.getElementById('sHint').onclick=()=>{ const c=document.getElementById('sCombo'); c.style.display=c.style.display==='none'?'inline-flex':'none'; };
+
+/* ===================== Chuleta ===================== */
+const CHEAT=[
+  ['cat','Edición'],
+  ['Copiar','Ctrl+C','⌘+C','Ctrl+C'],
+  ['Cortar','Ctrl+X','⌘+X','Ctrl+X'],
+  ['Pegar','Ctrl+V','⌘+V','Ctrl+V'],
+  ['Pegar sin formato','Ctrl+Shift+V','⌘+⇧+V','Ctrl+Shift+V'],
+  ['Deshacer','Ctrl+Z','⌘+Z','Ctrl+Z'],
+  ['Rehacer','Ctrl+Y','⌘+⇧+Z','Ctrl+Y'],
+  ['Seleccionar todo','Ctrl+A','⌘+A','Ctrl+A'],
+  ['Buscar','Ctrl+F','⌘+F','Ctrl+F'],
+  ['Buscar y reemplazar','Ctrl+H','⌘+⌥+F','Ctrl+H'],
+  ['Guardar','Ctrl+S','⌘+S','Ctrl+S'],
+  ['cat','Texto y cursor'],
+  ['Inicio / fin de línea','Home / End','⌘+← / ⌘+→','Home / End'],
+  ['Inicio / fin del documento','Ctrl+Home / Ctrl+End','⌘+↑ / ⌘+↓','Ctrl+Home / Ctrl+End'],
+  ['Seleccionar palabra a palabra','Ctrl+Shift+←/→','⌥+⇧+←/→','Ctrl+Shift+←/→'],
+  ['Borrar palabra anterior','Ctrl+Backspace','⌥+Backspace','Ctrl+Backspace'],
+  ['cat','Ventanas y apps'],
+  ['Cambiar de aplicación','Alt+Tab','⌘+Tab','Alt+Tab'],
+  ['Cerrar ventana','Alt+F4','⌘+Q','Alt+F4 / Ctrl+Q'],
+  ['Minimizar todo / escritorio','Win+D','⌘+F3 (Mission)','Ctrl+Super+D'],
+  ['Nueva pestaña (navegador)','Ctrl+T','⌘+T','Ctrl+T'],
+  ['Cerrar pestaña','Ctrl+W','⌘+W','Ctrl+W'],
+  ['Cambiar de escritorio','Win+Ctrl+←/→','Ctrl+←/→','Ctrl+Alt+←/→'],
+  ['cat','Sistema'],
+  ['Captura de pantalla','Win+Shift+S','⌘+⇧+4','Shift+ImprPant / Herramienta'],
+  ['Bloquear el equipo','Win+L','Ctrl+⌘+Q','Ctrl+Alt+L'],
+  ['Panel de emojis','Win+.','Ctrl+⌘+Espacio','Ctrl+. (según app)'],
+  ['Administrador de tareas','Ctrl+Shift+Esc','⌘+⌥+Esc','Ctrl+Esc (según entorno)'],
+  ['Explorador de archivos','Win+E','⌘+N (Finder)','Super+E (según entorno)'],
+];
+function chip(str){ return str.split('/').map(seg=>seg.trim().split('+').map(x=>'<span class="kbd">'+x.trim()+'</span>').join('')).join(' / '); }
+function renderCheat(){
+  const body=document.getElementById('chBody'); if(body.dataset.built) return;
+  CHEAT.forEach(row=>{
+    const tr=document.createElement('tr');
+    if(row[0]==='cat'){ tr.innerHTML='<td class="cat" colspan="4">'+row[1]+'</td>'; }
+    else { tr.dataset.search=row[0].toLowerCase();
+      tr.innerHTML='<td>'+row[0]+'</td><td>'+chip(row[1])+'</td><td>'+chip(row[2])+'</td><td>'+chip(row[3])+'</td>'; }
+    body.appendChild(tr);
+  });
+  body.dataset.built='1';
+}
+document.getElementById('chSearch').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase().trim();
+  document.querySelectorAll('#chBody tr').forEach(tr=>{
+    if(!tr.dataset.search){ tr.style.display=''; return; }
+    tr.style.display = !q || tr.dataset.search.includes(q) ? '' : 'none';
+  });
+});
+
+/* ===================== Dispatcher de teclado ===================== */
+window.addEventListener('keydown',e=>{
+  if(currentView==='practica') practiceKey(e);
+  else if(currentView==='lluvia') fallKey(e);
+  else if(currentView==='atajos') shortcutKey(e);
+});
+</script>
+</body>
+</html>
